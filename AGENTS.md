@@ -77,6 +77,12 @@ Infinity/                          # Monorepo root (this file)
 │
 ├── galaxy/                        # Galaxy view client (planned — directory not created yet)
 │
+├── packages/                      # Shared npm workspace packages (see Shared packages section)
+│   ├── shared-ui/                 # React components, hooks, theme — @infinity/shared-ui
+│   ├── shared-types/              # TypeScript interfaces shared by all clients — @infinity/shared-types
+│   ├── shared-utils/              # Pure utility functions — @infinity/shared-utils
+│   └── shared-config/             # Constants, colors, settings — @infinity/shared-config
+│
 └── deployment/                    # Run scripts and config (dev only for now)
     ├── start-caddy.bat            # Start Caddy reverse proxy
     └── dev/                       # Local dev: Docker, Caddy config, helper scripts
@@ -97,6 +103,11 @@ Infinity/                          # Monorepo root (this file)
 | `terra-view/` | Planet client only | Served at `/terra-view/`; dev port `3000`. |
 | `solaris/` | Solar system client only | Served at `/solaris/`; dev port `3003` *(Caddy route not wired yet)*. |
 | `galaxy/` | Galaxy client only | Planned; served at `/galaxy/`. |
+| `packages/` | All clients | npm workspace packages — import as `@infinity/*`. Build each with `npm run build` inside the package directory. |
+| `packages/shared-ui/` | All React clients | Presentation-only React components and hooks. React/React-DOM are peer dependencies — do not add them to `dependencies`. |
+| `packages/shared-types/` | All clients + server | TypeScript interfaces for domain objects and events. No runtime dependencies. |
+| `packages/shared-utils/` | All clients | Pure utility functions (formatters, math, random, helpers). No framework dependencies. |
+| `packages/shared-config/` | All clients + server | Shared constants, color palette, timing values, z-index scale. No runtime dependencies. |
 | `deployment/` | Run / ops (dev) | Scripts and config to start databases, reverse proxy, and (later) full stack. Production out of scope for now. |
 
 ---
@@ -146,21 +157,46 @@ Index for human navigation and explicit user references — **not** for agent au
 | Game overview | [documentation/infinity.md](documentation/infinity.md) |
 | Game rules (draft) | [contracts/game-rules.md](contracts/game-rules.md) |
 | Terrain resources (draft) | [contracts/resources.md](contracts/resources.md) |
-| Three game clients (analysis) | [documentation/architecture/3clients-analysis.md](documentation/architecture/3clients-analysis.md) |
-| Server setup (planning) | [documentation/architecture/server-setup.md](documentation/architecture/server-setup.md) |
 | Server API (source of truth) | [contracts/](contracts/) — OpenAPI, AsyncAPI, JSON Schemas |
 | DTO schemas (JSON Schema) | [contracts/schemas/](contracts/schemas/) |
 | OpenAPI (REST) | [contracts/auth-api.yaml](contracts/auth-api.yaml) · [admin-api.yaml](contracts/admin-api.yaml) · [game-api.yaml](contracts/game-api.yaml) |
 | AsyncAPI (Socket.IO) | [contracts/asyncapi.yaml](contracts/asyncapi.yaml) |
-| Stellar Gate API contract | [stellar-gate/documentation/infinity/stellar-gate-api.md](stellar-gate/documentation/infinity/stellar-gate-api.md) |
-| Domain objects (cube, star, planet…) | [infinity/documentation/objects/](infinity/documentation/objects/) |
-| Terra View setup | [documentation/terra-view/terra-view-setup.md](documentation/terra-view/terra-view-setup.md) |
 | Local dev runbook | [deployment/dev/README.md](deployment/dev/README.md) |
 | Deferred fixes (cross-project) | [documentation/TO-BE-FIXED.md](documentation/TO-BE-FIXED.md) |
 
 **Language:** English is the primary language for code, agent guides, and new documentation. Several existing docs are in French. When you rely on or update a French doc, ask the user whether it should be translated to English.
 
 Documentation conventions: [rules/documents.md](rules/documents.md). Code, paths, and API identifiers are always in English.
+
+---
+
+## Shared packages
+
+All packages live under `packages/` and are managed as an **npm workspace** (root `package.json`). Each is built with `tsup` and published under the `@infinity` scope.
+
+| Package | Name | Contents |
+|---------|------|----------|
+| [`packages/shared-ui/`](packages/shared-ui/) | `@infinity/shared-ui` | React components (`Button`, `Spinner`, `HealthBar`, `PlayerAvatar`), hooks (`useDebounce`, `useKeyboard`, `useResize`), theme tokens |
+| [`packages/shared-types/`](packages/shared-types/) | `@infinity/shared-types` | TypeScript interfaces: `Player`, `Item`, `InventorySlot`, `Packet`, `GameEvent`, `GameEventName` |
+| [`packages/shared-utils/`](packages/shared-utils/) | `@infinity/shared-utils` | `formatters/`, `math/`, `random/`, `helpers/` — pure functions, no side effects |
+| [`packages/shared-config/`](packages/shared-config/) | `@infinity/shared-config` | `colors`, `SOCKET_EVENTS`, `PAGINATION`, `XP_THRESHOLDS`, `timings`, `breakpoints`, `zIndex` |
+
+**Import pattern in any client:**
+
+```tsx
+import { Button, HealthBar }  from "@infinity/shared-ui";
+import { Player, GameEvent }  from "@infinity/shared-types";
+import { clamp, formatNumber } from "@infinity/shared-utils";
+import { colors, SOCKET_EVENTS } from "@infinity/shared-config";
+```
+
+**Key constraints:**
+- `shared-ui` must stay presentation-only — no routing, no Zustand, no API calls.
+- `shared-types` and `shared-config` must have zero runtime dependencies.
+- `shared-utils` must have zero framework dependencies.
+- Build before consuming in an app: `cd packages/<name> && npm run build`.
+
+**Architecture reference:** [documentation/architecture/share-ui.md](documentation/architecture/share-ui.md)
 
 ---
 
