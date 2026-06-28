@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/vec3-local.json",
+  "title": "Vec3Local",
+  "description": "3D local position (x, y, z).",
+  "x-infinity-source": "infinity/src/modules/players/dto/local-position.dto.ts#Vec3LocalDto",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "z": { "type": "number" }
+  },
+  "required": ["x", "y", "z"],
+  "additionalProperties": false
+}

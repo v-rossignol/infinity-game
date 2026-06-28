@@ -1,0 +1,14 @@
+# Sub-projects — each has its own git repository
+infinity/
+stellar-gate/
+cosmos-governance/
+terra-view/
+solaris/
+galaxy/
+
+# Deployment — will have its own git repository
+deployment/
+
+# Media and binary assets
+media/
+assets/

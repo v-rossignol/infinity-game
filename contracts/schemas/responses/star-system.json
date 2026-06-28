@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/star-system.json",
+  "title": "StarSystem",
+  "description": "Star system MongoDB document. _id equals parent Star.id.",
+  "x-infinity-source": "infinity/src/modules/galaxy/entities/star-system.schema.ts",
+  "type": "object",
+  "properties": {
+    "_id": { "type": "string", "format": "uuid" },
+    "name": { "type": "string" },
+    "planets": {
+      "type": "array",
+      "items": { "$ref": "system-planet-summary.json" }
+    },
+    "visited": { "type": "boolean" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["_id", "name", "planets", "visited", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

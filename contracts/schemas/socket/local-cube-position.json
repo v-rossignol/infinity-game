@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/local-cube-position.json",
+  "title": "LocalCubePosition",
+  "description": "Local cube coordinates [0, 10) LY per axis (GALAXY_MOVE).",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleGalaxyMove",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "z": { "type": "number" }
+  },
+  "required": ["x", "y", "z"],
+  "additionalProperties": false
+}

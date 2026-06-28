@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/resource-node.json",
+  "title": "ResourceNode",
+  "description": "Resource deposit document from the resources collection.",
+  "x-infinity-source": "infinity/src/modules/resources/entities/resource.schema.ts",
+  "type": "object",
+  "properties": {
+    "_id": { "type": "string" },
+    "planetId": { "type": "string" },
+    "type": {
+      "type": "string",
+      "enum": ["iron", "gold", "water", "crystal"]
+    },
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "quantity": { "type": "number" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["_id", "planetId", "type", "x", "y", "quantity", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

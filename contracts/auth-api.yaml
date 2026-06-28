@@ -1,0 +1,170 @@
+openapi: 3.1.0
+info:
+  title: Infinity Server — Auth API
+  version: 0.3.0
+  description: |
+    Authentication and session routes under `/infinity/auth/*`.
+
+    **Authentication:** JWT via httpOnly cookie `infinity_token` (`Path=/infinity`) or
+    `Authorization: Bearer <jwt>`. Login and register set the cookie; token lifetime is 1 hour.
+
+    **Related specs:** [game-api.yaml](./game-api.yaml) · [admin-api.yaml](./admin-api.yaml) · [asyncapi.yaml](./asyncapi.yaml)
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: http://localhost:4000/infinity
+    description: Local development (port configurable via `PORT`, default 4000)
+
+tags:
+  - name: Auth
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Create account
+      description: Creates a user and sets the `infinity_token` session cookie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/auth/register.json
+      responses:
+        '201':
+          description: Account created
+          headers:
+            Set-Cookie:
+              description: Session JWT (`infinity_token`, HttpOnly, Path=/infinity)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/auth-session.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '409':
+          description: Username already taken
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Authenticate
+      description: Validates credentials and sets the `infinity_token` session cookie.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/auth/login.json
+      responses:
+        '200':
+          description: Authenticated
+          headers:
+            Set-Cookie:
+              description: Session JWT (`infinity_token`, HttpOnly, Path=/infinity)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/auth-session.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getAuthMe
+      summary: Restore session
+      description: "Returns a flat user object (not wrapped in `{ user }`)."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: schemas/auth/auth-user.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Clear session
+      description: Clears the `infinity_token` cookie.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Logged out
+          headers:
+            Set-Cookie:
+              description: Cleared cookie (`Max-Age=0`)
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/success.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      operationId: forgotPassword
+      summary: Request password reset (stub)
+      description: Validates email format and always returns success. No email is sent.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/auth/forgot-password.json
+      responses:
+        '200':
+          description: Acknowledged (always, even if email is not registered)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/success.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/bearerAuth
+    cookieAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/cookieAuth
+  responses:
+    BadRequest:
+      $ref: openapi-shared.yaml#/components/responses/BadRequest
+    Unauthorized:
+      $ref: openapi-shared.yaml#/components/responses/Unauthorized

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/star-system-identity.json",
+  "title": "StarSystemIdentity",
+  "description": "Reference to a star system by UUID.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#StarSystemIdentity",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" }
+  },
+  "required": ["id"],
+  "additionalProperties": false
+}

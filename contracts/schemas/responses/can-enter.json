@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/can-enter.json",
+  "title": "CanEnterResponse",
+  "description": "Whether the authenticated player may enter the requested location.",
+  "type": "object",
+  "properties": {
+    "canEnter": { "type": "boolean" }
+  },
+  "required": ["canEnter"],
+  "additionalProperties": false
+}

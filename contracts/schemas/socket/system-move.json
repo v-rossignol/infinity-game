@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/system-move.json",
+  "title": "SystemMove",
+  "description": "SYSTEM_MOVE client payload — star-system map coordinates.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleSystemMove",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" }
+  },
+  "required": ["x", "y"],
+  "additionalProperties": false
+}

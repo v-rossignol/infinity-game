@@ -1,0 +1,75 @@
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT from login/register (`Authorization: Bearer <token>`)"
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: infinity_token
+      description: "HttpOnly session cookie set on login/register (`Path=/infinity`)"
+
+  parameters:
+    userId:
+      name: userId
+      in: path
+      required: true
+      description: User UUID from auth
+      schema:
+        type: string
+        format: uuid
+    cubeCenterX:
+      name: x
+      in: path
+      required: true
+      description: Cube center X coordinate (light-years, multiple of 10)
+      schema:
+        type: number
+    cubeCenterY:
+      name: y
+      in: path
+      required: true
+      description: Cube center Y coordinate (light-years, multiple of 10)
+      schema:
+        type: number
+    cubeCenterZ:
+      name: z
+      in: path
+      required: true
+      description: Cube center Z coordinate (light-years, multiple of 10)
+      schema:
+        type: number
+
+  responses:
+    BadRequest:
+      description: Validation failure
+      content:
+        application/json:
+          schema:
+            $ref: schemas/responses/http-error.json
+    Unauthorized:
+      description: Missing, invalid, or expired JWT
+      content:
+        application/json:
+          schema:
+            $ref: schemas/responses/http-error.json
+    Forbidden:
+      description: Valid JWT but insufficient role (admin routes)
+      content:
+        application/json:
+          schema:
+            $ref: schemas/responses/http-error.json
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: schemas/responses/http-error.json
+    Conflict:
+      description: Player not at the required location depth
+      content:
+        application/json:
+          schema:
+            $ref: schemas/responses/http-error.json

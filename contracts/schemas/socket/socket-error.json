@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/socket-error.json",
+  "title": "SocketError",
+  "description": "Error payload for GALAXY_ERROR, PLANET_ERROR, and SYSTEM_ERROR.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts",
+  "type": "object",
+  "properties": {
+    "event": { "type": "string" },
+    "message": { "type": "string" },
+    "statusCode": { "type": "integer" }
+  },
+  "required": ["event", "message", "statusCode"],
+  "additionalProperties": false
+}

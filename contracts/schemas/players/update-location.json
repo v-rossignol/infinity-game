@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/update-location.json",
+  "title": "UpdateLocationDto",
+  "description": "Replace player location for PATCH /infinity/players/me/location.",
+  "x-infinity-source": "infinity/src/modules/players/dto/update-location.dto.ts",
+  "x-infinity-usage": "body",
+  "type": "object",
+  "properties": {
+    "location": {
+      "oneOf": [
+        { "$ref": "../shared/player-location.json" },
+        { "type": "null" }
+      ]
+    }
+  },
+  "additionalProperties": false
+}

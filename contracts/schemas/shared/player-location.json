@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/player-location.json",
+  "title": "PlayerLocation",
+  "description": "Player view depth and position. Alias of unified Location type (player validation profile). Discriminated by which nested objects are present.",
+  "x-infinity-note": "Canonical type name is Location; PlayerLocation is a player-presence alias.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#PlayerLocation",
+  "oneOf": [
+    {
+      "title": "PlayerLocationInCube",
+      "description": "Player in Galaxy View — cube depth.",
+      "type": "object",
+      "properties": {
+        "cube": { "$ref": "cube-location.json" }
+      },
+      "required": ["cube"],
+      "additionalProperties": false
+    },
+    {
+      "title": "PlayerLocationInStarSystem",
+      "description": "Player in Solar System View — star-system depth.",
+      "type": "object",
+      "properties": {
+        "cube": { "$ref": "cube-identity.json" },
+        "starSystem": { "$ref": "star-system-location.json" }
+      },
+      "required": ["cube", "starSystem"],
+      "additionalProperties": false
+    },
+    {
+      "title": "PlayerLocationOnPlanet",
+      "description": "Player at planet depth — overview (planet.id only) or hex-selected (planet.id + hex_coords).",
+      "type": "object",
+      "properties": {
+        "cube": { "$ref": "cube-identity.json" },
+        "starSystem": { "$ref": "star-system-identity.json" },
+        "planet": { "$ref": "planet-location.json" }
+      },
+      "required": ["cube", "starSystem", "planet"],
+      "additionalProperties": false
+    }
+  ]
+}

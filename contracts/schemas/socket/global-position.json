@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/global-position.json",
+  "title": "GlobalGalaxyPosition",
+  "description": "Global galaxy coordinates in light-years (REQUEST_CUBE).",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleRequestCube",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "z": { "type": "number" }
+  },
+  "required": ["x", "y", "z"],
+  "additionalProperties": false
+}

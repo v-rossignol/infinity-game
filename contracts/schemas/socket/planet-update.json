@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/planet-update.json",
+  "title": "PlanetUpdate",
+  "description": "PLANET_UPDATE room broadcast payload.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts",
+  "type": "object",
+  "properties": {
+    "playerId": { "type": "string", "format": "uuid" },
+    "planetId": { "type": "string", "minLength": 1 },
+    "q": { "type": "number" },
+    "r": { "type": "number" }
+  },
+  "required": ["playerId", "planetId", "q", "r"],
+  "additionalProperties": false
+}

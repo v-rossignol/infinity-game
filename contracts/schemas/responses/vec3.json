@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/vec3.json",
+  "title": "Vec3",
+  "description": "3D vector used in galaxy coordinates.",
+  "x-infinity-source": "infinity/src/shared/interfaces/galaxy.interface.ts#Vec3",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "z": { "type": "number" }
+  },
+  "required": ["x", "y", "z"],
+  "additionalProperties": false
+}

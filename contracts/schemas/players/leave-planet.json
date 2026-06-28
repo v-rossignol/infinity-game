@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/leave-planet.json",
+  "title": "LeavePlanetDto",
+  "description": "View transition planet → star system for POST /infinity/players/me/location/leave-planet.",
+  "x-infinity-source": "infinity/src/modules/players/dto/location-transition.dto.ts#LeavePlanetDto",
+  "x-infinity-usage": "body",
+  "$ref": "../shared/vec2-local.json"
+}

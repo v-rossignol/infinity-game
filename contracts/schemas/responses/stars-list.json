@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/stars-list.json",
+  "title": "StarsList",
+  "description": "Star array wrapper.",
+  "type": "object",
+  "properties": {
+    "stars": {
+      "type": "array",
+      "items": { "$ref": "star.json" }
+    }
+  },
+  "required": ["stars"],
+  "additionalProperties": false
+}

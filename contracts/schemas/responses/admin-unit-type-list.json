@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/admin-unit-type-list.json",
+  "title": "AdminUnitTypeList",
+  "description": "Vehicule unit types from the catalog for GET /infinity/admin/units/vehicules.",
+  "x-infinity-source": "infinity/src/modules/admin/admin.service.ts#AdminUnitTypeList",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": { "$ref": "admin-unit-type.json" }
+    },
+    "total": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["items", "total"],
+  "additionalProperties": false
+}

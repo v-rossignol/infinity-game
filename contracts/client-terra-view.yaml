@@ -1,0 +1,295 @@
+openapi: 3.1.0
+info:
+  title: Terra View — Client API Contract
+  version: 0.1.0
+  description: |
+    Integration contract for the **Terra View** planetary surface client (`terra-view/`).
+
+    This file documents **which Infinity Server routes Terra View consumes**, how the
+    client calls them (HTTP config, bootstrap order, error handling), and what is
+    planned next. It is a client-side view — server behavior remains defined in
+    [auth-api.yaml](./auth-api.yaml), [game-api.yaml](./game-api.yaml), and
+    [asyncapi.yaml](./asyncapi.yaml).
+
+    ## Client deployment
+
+    | Field | Value |
+    |-------|-------|
+    | App base path | `/terra-view/` |
+    | Dev port | `3000` |
+    | HTTP client base URL | `/infinity` (relative) |
+    | Credentials | `withCredentials: true` on all requests |
+    | Session storage | Cookie `infinity_token` only — **no JWT in JS state** |
+
+    **Dev proxy:** Vite forwards `/infinity/*` → `http://localhost:4000`. With Caddy on
+    port 80, the client and API share the same origin (`http://localhost/` or
+    `http://infinity-dev.home.rh/`).
+
+    **Upstream navigation:** Players are expected to arrive from Stellar Gate (login) and,
+    eventually, Solar System View (`/solaris/`). On `401`, Terra View links to
+    `/stellar-gate/`.
+
+    ## Bootstrap flow (`useFirstPageBootstrap`)
+
+    On first load, Terra View runs this sequence:
+
+    1. `GET /auth/me` — restore session; on `401`, show sign-in error with Stellar Gate link.
+    2. `POST /players/me/enter-game` — idempotent spawn/resume; requires `player.location.planet`.
+    3. `GET /planets/{planetId}` — load hex surface for rendering (`HexGrid`).
+
+    If `player.location` is missing or not on a planet surface, the client stops with a
+    user-facing error (no planet fetch).
+
+    ## Implementation status
+
+    | Area | Status | Client module |
+    |------|--------|---------------|
+    | Session restore | **Implemented** | `src/services/authService.ts` |
+    | Enter game / spawn | **Implemented** | `src/services/playerService.ts` |
+    | Planet surface | **Implemented** | `src/services/planetService.ts` |
+    | Resource nodes | Planned | — |
+    | Socket.IO planet room | Planned | — (`PLANET_JOIN`, `PLANET_MOVE`, `PLANET_UPDATE`) |
+
+    Client types live in `terra-view/src/types/` and should stay aligned with
+    [schemas/](./schemas/).
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: http://localhost:3000/infinity
+    description: Terra View dev server (Vite proxy to NestJS :4000)
+  - url: http://localhost/infinity
+    description: Caddy reverse proxy (same-origin with `/terra-view/`)
+  - url: http://localhost:4000/infinity
+    description: Direct Infinity Server access (backend tests only)
+
+tags:
+  - name: Bootstrap
+    description: Session and player state required before map render
+  - name: Planets
+    description: Planet surface data for hex map rendering
+  - name: Resources
+    description: Harvestable resource nodes (not wired in client yet)
+  - name: Real-time
+    description: Socket.IO events — see asyncapi.yaml
+
+paths:
+  /auth/me:
+    get:
+      tags: [Bootstrap]
+      operationId: terraViewGetAuthMe
+      summary: Restore session
+      description: |
+        First step of Terra View bootstrap. Returns the signed-in user for the header.
+
+        **Server spec:** [auth-api.yaml](./auth-api.yaml) — `getAuthMe`
+      x-terra-view-status: implemented
+      x-terra-view-client-service: src/services/authService.ts
+      x-terra-view-client-type: src/types/auth.ts#User
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user (flat object, not wrapped in `{ user }`)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/auth/auth-user.json
+        '401':
+          description: Not signed in — client redirects user to Stellar Gate
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/enter-game:
+    post:
+      tags: [Bootstrap]
+      operationId: terraViewEnterGame
+      summary: Bootstrap or resume playable state
+      description: |
+        Second step of Terra View bootstrap. Ensures the player has a world location.
+        Terra View requires `player.location.planet.id` and `player.location.planet.hex_coords`
+        before loading the planet surface.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `enterGame`
+      x-terra-view-status: implemented
+      x-terra-view-client-service: src/services/playerService.ts
+      x-terra-view-client-type: src/types/player.ts#EnterGameResponse
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Player profile (spawned or existing)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '503':
+          description: Spawn allocation failed after retries
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /planets/{planetId}:
+    get:
+      tags: [Planets]
+      operationId: terraViewGetPlanet
+      summary: Load planet surface for hex map
+      description: |
+        Third step of Terra View bootstrap. Fetches the MongoDB planet document whose
+        `_id` matches `player.location.planet.id`. The client renders `surface.hexagons`
+        and uses `radius` for toroidal layout.
+
+        Terra View does **not** pass `systemId` on first fetch — the planet document
+        must already exist (created during enter-game spawn or prior visits).
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `getPlanet`
+      x-terra-view-status: implemented
+      x-terra-view-client-service: src/services/planetService.ts
+      x-terra-view-client-type: src/types/planet.ts#Planet
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          description: Planet id from `player.location.planet.id`
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Planet surface document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/planet.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '422':
+          description: Gas planet — no surface document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /resources/planet/{planetId}:
+    get:
+      tags: [Resources]
+      operationId: terraViewListPlanetResources
+      summary: List resource nodes on a planet
+      description: |
+        **Planned** — not called by Terra View yet. Will supplement hex rendering with
+        harvestable nodes from the dedicated `resources` collection.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `listPlanetResources`
+      x-terra-view-status: planned
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          description: Planet id (same as bootstrap `player.location.planet.id`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource nodes (possibly empty array)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/responses/resource-node.json
+
+  /resources/planet/{planetId}/hex/{q}/{r}:
+    get:
+      tags: [Resources]
+      operationId: terraViewGetPlanetHexResources
+      summary: List resources on a planet hex
+      description: |
+        Returns permanent terrain resources for the hex at axial coordinates `(q, r)`.
+        Requires the planet surface document to exist in MongoDB.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `getPlanetHexResources`
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          description: Planet id (same as bootstrap `player.location.planet.id`)
+          schema:
+            type: string
+        - name: q
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+        - name: r
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Hex resources
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/planet-hex-resources.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+x-terra-view-realtime:
+  description: |
+    Socket.IO integration is planned. Event names and payloads follow
+    [asyncapi.yaml](./asyncapi.yaml).
+  status: planned
+  events:
+    - name: PLANET_JOIN
+      direction: client-to-server
+      purpose: Join planet room; restore or roll spawn hex
+      asyncapi: asyncapi.yaml#/channels/planetJoin
+    - name: PLANET_MOVE
+      direction: client-to-server
+      purpose: Report player hex movement on the surface
+      asyncapi: asyncapi.yaml#/channels/planetMove
+    - name: PLANET_UPDATE
+      direction: server-to-client
+      purpose: Broadcast position updates to planet room
+      asyncapi: asyncapi.yaml#/channels/planetUpdate
+    - name: PLANET_LEAVE
+      direction: client-to-server
+      purpose: Leave planet room without changing persisted location
+      asyncapi: asyncapi.yaml#/channels/planetLeave
+    - name: PLANET_ERROR
+      direction: server-to-client
+      purpose: Handler error delivered to requesting client only
+      asyncapi: asyncapi.yaml#/channels/planetError
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/bearerAuth
+    cookieAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/cookieAuth
+  responses:
+    BadRequest:
+      $ref: openapi-shared.yaml#/components/responses/BadRequest
+    Unauthorized:
+      $ref: openapi-shared.yaml#/components/responses/Unauthorized
+    NotFound:
+      $ref: openapi-shared.yaml#/components/responses/NotFound

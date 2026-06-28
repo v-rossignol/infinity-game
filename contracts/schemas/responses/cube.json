@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/cube.json",
+  "title": "Cube",
+  "description": "Galaxy cube summary.",
+  "x-infinity-source": "infinity/src/shared/interfaces/galaxy.interface.ts#CubeData",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "name": { "type": "string" },
+    "origin": { "$ref": "vec3.json" },
+    "star_ids": {
+      "type": "array",
+      "items": { "type": "string", "format": "uuid" }
+    }
+  },
+  "required": ["id", "name", "origin", "star_ids"],
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/star-system-location.json",
+  "title": "StarSystemLocation",
+  "description": "Star system identity with 2D map position in solar system view.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#StarSystemLocation",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "position": { "$ref": "vec2-local.json" }
+  },
+  "required": ["id", "position"],
+  "additionalProperties": false
+}

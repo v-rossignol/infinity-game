@@ -1,0 +1,281 @@
+openapi: 3.1.0
+info:
+  title: Infinity Server — Admin API
+  version: 0.3.0
+  description: |
+    Administration routes under `/infinity/admin/*`. Requires JWT **and** `role: admin`.
+
+    **Related specs:** [auth-api.yaml](./auth-api.yaml) · [game-api.yaml](./game-api.yaml) · [asyncapi.yaml](./asyncapi.yaml)
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: http://localhost:4000/infinity
+    description: Local development (port configurable via `PORT`, default 4000)
+
+tags:
+  - name: Admin
+
+paths:
+  /admin/me:
+    get:
+      tags: [Admin]
+      operationId: getAdminMe
+      summary: Current admin profile
+      description: "Requires JWT with `role: admin`."
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Admin user profile
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/admin-user.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      operationId: listAdminUsers
+      summary: List all users
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Users ordered by `createdAt` ascending
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/responses/admin-user.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/planets:
+    get:
+      tags: [Admin]
+      operationId: listAdminPlanets
+      summary: List all planets
+      description: Paginated planet metadata without surface hexagons. Ordered by `createdAt` ascending.
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: count
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Planets ordered by `createdAt` ascending
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/paginated-admin-planets.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/planets/generate:
+    get:
+      tags: [Admin]
+      operationId: generateAdminPlanetPreview
+      summary: Generate a preview planet surface
+      description: |
+        Generates an ephemeral planet surface for admin preview and Terra View testing.
+        The result is cached in Redis for 1 hour (same `seed`, `radius`, and `type` return the cached preview).
+        It is **not** persisted to MongoDB.
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: seed
+          in: query
+          required: false
+          description: Deterministic generation seed. A random UUID is used when omitted.
+          schema:
+            type: string
+        - name: radius
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 5
+            maximum: 15
+            default: 10
+        - name: type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [rocky, ice, lava]
+            default: rocky
+      responses:
+        '200':
+          description: Generated preview planet with surface hexagons
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/admin-generated-planet-preview.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/systems:
+    get:
+      tags: [Admin]
+      operationId: listAdminStarSystems
+      summary: List all star systems
+      description: Paginated star system metadata for defined (generated) systems. Ordered by `createdAt` ascending.
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: count
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Star systems ordered by `createdAt` ascending
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/paginated-admin-systems.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/statistics:
+    get:
+      tags: [Admin]
+      operationId: getAdminStatistics
+      summary: Entity counts across databases and the unit catalog
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Parallel counts from PostgreSQL, MongoDB, and the unit type catalog
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/admin-statistics.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/units/vehicules:
+    get:
+      tags: [Admin]
+      operationId: listAdminVehicules
+      summary: List vehicule unit types in the catalog
+      description: Returns all catalog entries with `type: vehicule`, ordered by `id` ascending.
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Vehicule unit types from the PostgreSQL catalog
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/admin-unit-type-list.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+
+  /admin/units/vehicules/{vehiculeId}:
+    get:
+      tags: [Admin]
+      operationId: getAdminVehicule
+      summary: Get a vehicule unit type from the catalog
+      description: Returns the catalog entry when `id` matches and `type` is `vehicule`.
+      x-infinity-requires-role: admin
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: vehiculeId
+          in: path
+          required: true
+          description: Stable catalog identifier (e.g. `scout-x1`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Vehicule unit type from the PostgreSQL catalog
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/admin-unit-type.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          $ref: openapi-shared.yaml#/components/responses/Forbidden
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/bearerAuth
+    cookieAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/cookieAuth
+  responses:
+    Unauthorized:
+      $ref: openapi-shared.yaml#/components/responses/Unauthorized
+    Forbidden:
+      $ref: openapi-shared.yaml#/components/responses/Forbidden
+    NotFound:
+      $ref: openapi-shared.yaml#/components/responses/NotFound

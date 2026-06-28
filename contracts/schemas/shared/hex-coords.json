@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/hex-coords.json",
+  "title": "HexCoords",
+  "description": "Axial hex coordinates on a planet surface.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#HexCoords",
+  "type": "object",
+  "properties": {
+    "q": { "type": "integer" },
+    "r": { "type": "integer" }
+  },
+  "required": ["q", "r"],
+  "additionalProperties": false
+}

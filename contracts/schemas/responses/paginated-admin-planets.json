@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/paginated-admin-planets.json",
+  "title": "PaginatedAdminPlanets",
+  "description": "Paginated planet list for GET /infinity/admin/planets.",
+  "x-infinity-source": "infinity/src/modules/admin/admin.service.ts#PaginatedAdminPlanets",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": { "$ref": "admin-planet-summary.json" }
+    },
+    "total": { "type": "integer", "minimum": 0 },
+    "page": { "type": "integer", "minimum": 1 },
+    "count": { "type": "integer", "minimum": 1, "maximum": 100 }
+  },
+  "required": ["items", "total", "page", "count"],
+  "additionalProperties": false
+}

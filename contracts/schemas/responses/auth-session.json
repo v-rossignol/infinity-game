@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/auth-session.json",
+  "title": "AuthSessionResponse",
+  "description": "POST /infinity/auth/login and register responses.",
+  "type": "object",
+  "properties": {
+    "user": { "$ref": "../auth/auth-user.json" }
+  },
+  "required": ["user"],
+  "additionalProperties": false
+}

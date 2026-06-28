@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/cube-location.json",
+  "title": "CubeLocation",
+  "description": "Cube identity with 3D position in galaxy view.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#CubeLocation",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "position": { "$ref": "vec3-local.json" }
+  },
+  "required": ["id", "position"],
+  "additionalProperties": false
+}

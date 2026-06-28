@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/move-order-result.json",
+  "title": "MoveOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/move. The unit's status is now 'moving'; a UNIT_UPDATE WebSocket event will fire when it arrives.",
+  "x-infinity-source": "infinity/src/modules/units/unit-movement.service.ts#MoveOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "enum": ["moving"] },
+    "startAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Temporary debug field. ISO-8601 timestamp when movement started on the server."
+    },
+    "arrivalAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 timestamp when the unit will arrive. Use this to drive client-side movement animation."
+    },
+    "origin": {
+      "type": "object",
+      "description": "Temporary debug field. Unit position when the move was ordered.",
+      "properties": {
+        "hex": { "$ref": "../shared/hex-coords.json" },
+        "position": { "$ref": "../shared/vec2-local.json" }
+      },
+      "required": ["hex", "position"],
+      "additionalProperties": false
+    },
+    "destination": {
+      "type": "object",
+      "description": "Temporary debug field. Target position for this move order.",
+      "properties": {
+        "hex": { "$ref": "../shared/hex-coords.json" },
+        "position": { "$ref": "../shared/vec2-local.json" }
+      },
+      "required": ["hex", "position"],
+      "additionalProperties": false
+    },
+    "distance": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Temporary debug field. Surface travel distance in hex units (1 = largest intra-hex distance)."
+    }
+  },
+  "required": ["unitId", "status", "startAt", "arrivalAt", "origin", "destination", "distance"],
+  "additionalProperties": false
+}

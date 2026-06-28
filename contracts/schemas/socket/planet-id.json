@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/planet-id.json",
+  "title": "PlanetIdPayload",
+  "description": "Planet room identifier (PLANET_JOIN, PLANET_LEAVE).",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts",
+  "type": "object",
+  "properties": {
+    "planetId": { "type": "string", "minLength": 1 }
+  },
+  "required": ["planetId"],
+  "additionalProperties": false
+}

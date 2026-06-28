@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/health.json",
+  "title": "HealthResponse",
+  "description": "GET /infinity/health response.",
+  "x-infinity-source": "infinity/src/app.service.ts",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string" },
+    "version": { "type": "string" },
+    "status": { "type": "string", "const": "OK" }
+  },
+  "required": ["name", "version", "status"],
+  "additionalProperties": false
+}

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/player-wrapper.json",
+  "title": "PlayerWrapper",
+  "description": "Response wrapper returning an updated player.",
+  "type": "object",
+  "properties": {
+    "player": { "$ref": "player.json" }
+  },
+  "required": ["player"],
+  "additionalProperties": false
+}

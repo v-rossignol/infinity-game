@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/stop-order-result.json",
+  "title": "StopOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/stop. The unit's status is now 'idle'; a UNIT_UPDATE WebSocket event carries the resolved location.",
+  "x-infinity-source": "infinity/src/modules/units/unit-movement.service.ts#StopOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "idle" }
+  },
+  "required": ["unitId", "status"],
+  "additionalProperties": false
+}

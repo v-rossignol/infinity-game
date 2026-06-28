@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/update-planet-hex.json",
+  "title": "UpdatePlanetHexDto",
+  "description": "Select or update hex coordinates at planet depth for PATCH /infinity/players/me/location/planet.",
+  "x-infinity-source": "infinity/src/modules/players/dto/location-transition.dto.ts#UpdatePlanetHexDto",
+  "x-infinity-usage": "body",
+  "type": "object",
+  "properties": {
+    "q": { "type": "integer" },
+    "r": { "type": "integer" }
+  },
+  "required": ["q", "r"],
+  "additionalProperties": false
+}

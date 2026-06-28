@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/unit-instance-with-type.json",
+  "title": "UnitInstanceWithType",
+  "description": "Placed unit instance with embedded catalog type definition.",
+  "x-infinity-source": "infinity/src/shared/interfaces/unit-instance.interface.ts#UnitInstanceWithType",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "typeId": { "type": "string" },
+    "ownerId": { "type": "string", "format": "uuid" },
+    "location": { "type": "object" },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "moving", "inactive", "active", "destroyed"]
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" },
+    "metadata": { "type": "object" },
+    "type": {
+      "$ref": "unit-type.json"
+    }
+  },
+  "required": [
+    "id",
+    "typeId",
+    "ownerId",
+    "location",
+    "status",
+    "createdAt",
+    "updatedAt",
+    "metadata",
+    "type"
+  ],
+  "additionalProperties": false
+}

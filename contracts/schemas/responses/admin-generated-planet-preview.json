@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/admin-generated-planet-preview.json",
+  "title": "AdminGeneratedPlanetPreview",
+  "description": "Ephemeral planet preview for GET /infinity/admin/planets/generate. Not persisted.",
+  "x-infinity-source": "infinity/src/shared/interfaces/planet-preview.interface.ts#PlanetPreview",
+  "type": "object",
+  "properties": {
+    "_id": {
+      "type": "string",
+      "description": "Preview identifier; equals the generation seed."
+    },
+    "name": { "type": "string", "const": "Preview Planet" },
+    "type": {
+      "type": "string",
+      "enum": ["rocky", "ice", "lava"]
+    },
+    "radius": { "type": "integer", "minimum": 5, "maximum": 15 },
+    "surface": {
+      "type": "object",
+      "properties": {
+        "hexagons": {
+          "type": "array",
+          "items": { "$ref": "planet-hexagon.json" }
+        },
+        "generatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["hexagons", "generatedAt"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["_id", "name", "type", "radius", "surface"],
+  "additionalProperties": false
+}

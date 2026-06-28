@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/vec2-local.json",
+  "title": "Vec2Local",
+  "description": "2D local position (x, y).",
+  "x-infinity-source": "infinity/src/modules/players/dto/local-position.dto.ts#Vec2LocalDto",
+  "type": "object",
+  "properties": {
+    "x": { "type": "number" },
+    "y": { "type": "number" }
+  },
+  "required": ["x", "y"],
+  "additionalProperties": false
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/system-planet-summary.json",
+  "title": "SystemPlanetSummary",
+  "description": "Embedded planet summary in a star system document.",
+  "x-infinity-source": "infinity/src/shared/interfaces/star-system.interface.ts#SystemPlanet",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "distanceFromStar": { "type": "integer", "minimum": 1 },
+    "radius": { "type": "number" },
+    "type": {
+      "type": "string",
+      "enum": ["rocky", "gas", "ice", "lava"]
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    }
+  },
+  "required": ["id", "name", "distanceFromStar", "radius", "type", "resources"],
+  "additionalProperties": false
+}

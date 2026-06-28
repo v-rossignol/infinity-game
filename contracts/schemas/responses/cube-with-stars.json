@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/cube-with-stars.json",
+  "title": "CubeWithStars",
+  "description": "Cube and its stars — GET /infinity/cubes/* and Socket.IO CUBE_DATA.",
+  "x-infinity-source": "infinity/src/shared/interfaces/galaxy.interface.ts#CubeWithStars",
+  "type": "object",
+  "properties": {
+    "cube": { "$ref": "cube.json" },
+    "stars": {
+      "type": "array",
+      "items": { "$ref": "star.json" }
+    }
+  },
+  "required": ["cube", "stars"],
+  "additionalProperties": false
+}

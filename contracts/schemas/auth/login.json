@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/auth/login.json",
+  "title": "LoginDto",
+  "description": "Credentials for POST /infinity/auth/login.",
+  "x-infinity-source": "infinity/src/modules/auth/dto/login.dto.ts",
+  "x-infinity-usage": "body",
+  "type": "object",
+  "properties": {
+    "username": { "type": "string", "minLength": 1 },
+    "password": { "type": "string", "minLength": 6 }
+  },
+  "required": ["username", "password"],
+  "additionalProperties": false
+}

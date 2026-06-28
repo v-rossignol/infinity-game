@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/unit-update.json",
+  "title": "UnitUpdate",
+  "description": "UNIT_UPDATE room broadcast payload. Emitted to the planet room when a unit arrives or is stopped mid-move.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleUnitMovementArrived",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": {
+      "type": "string",
+      "enum": ["idle", "moving", "inactive", "active", "destroyed"]
+    },
+    "location": {
+      "type": "object",
+      "description": "Updated unit location (planet depth: cube, starSystem, planet with hex_coords and position)."
+    }
+  },
+  "required": ["unitId", "status", "location"],
+  "additionalProperties": false
+}

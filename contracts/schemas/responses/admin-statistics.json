@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/admin-statistics.json",
+  "title": "AdminStatistics",
+  "description": "Entity counts across PostgreSQL, MongoDB, and the unit type catalog.",
+  "x-infinity-source": "infinity/src/modules/admin/admin.service.ts#AdminStatistics",
+  "type": "object",
+  "properties": {
+    "users": { "type": "integer", "minimum": 0 },
+    "cubes": { "type": "integer", "minimum": 0 },
+    "starSystems": { "type": "integer", "minimum": 0 },
+    "planets": { "type": "integer", "minimum": 0 },
+    "vehicules": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unit types with category `vehicule` in the catalog."
+    },
+    "buildings": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Unit types with category `building` in the catalog."
+    }
+  },
+  "required": ["users", "cubes", "starSystems", "planets", "vehicules", "buildings"],
+  "additionalProperties": false
+}

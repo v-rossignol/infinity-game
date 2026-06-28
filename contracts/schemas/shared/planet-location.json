@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/planet-location.json",
+  "title": "PlanetLocation",
+  "description": "Planet identity with optional hex surface coordinates and in-hex position (units).",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#PlanetLocation",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "hex_coords": { "$ref": "hex-coords.json" },
+    "position": { "$ref": "vec2-local.json" }
+  },
+  "required": ["id"],
+  "additionalProperties": false
+}

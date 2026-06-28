@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/admin-user.json",
+  "title": "AdminUser",
+  "description": "Admin user profile including role.",
+  "x-infinity-source": "infinity/src/modules/admin/admin.service.ts#AdminUserSummary",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "username": { "type": "string" },
+    "email": { "type": "string" },
+    "role": { "type": "string", "enum": ["user", "admin"] },
+    "createdAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["id", "username", "email", "role", "createdAt"],
+  "additionalProperties": false
+}

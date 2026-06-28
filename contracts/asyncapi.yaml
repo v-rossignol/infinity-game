@@ -1,0 +1,470 @@
+asyncapi: 3.0.0
+info:
+  title: Infinity Server — Socket.IO Events
+  version: 0.3.0
+  description: |
+    Real-time events for the Infinity multiplayer backend (NestJS + Socket.IO 4).
+
+    **Transport:** Socket.IO at path `/infinity/socket.io` (same prefix as REST).
+    Default namespace `/`, `websocket` transport only, CORS `origin: *`,
+    connection recovery up to 2 minutes.
+
+    **Connect:**
+
+    ```javascript
+    import { io } from 'socket.io-client';
+
+    const socket = io('http://localhost:4000', {
+      path: '/infinity/socket.io',
+      transports: ['websocket'],
+      auth: { token: '<jwt>' },
+    });
+    ```
+
+    **Authentication:** Pass JWT in handshake `auth.token`, header
+    `Authorization: Bearer <jwt>`, or cookie `infinity_token`.
+    Move and planet handlers require auth; read-only galaxy requests
+    (`REQUEST_CUBE`, `REQUEST_STAR`) allow anonymous connections.
+
+    **Channel address:** each channel `address` is the Socket.IO **event name**
+    (`socket.emit` / `socket.on`).
+
+    **REST companion:** [auth-api.yaml](./auth-api.yaml), [admin-api.yaml](./admin-api.yaml),
+    [game-api.yaml](./game-api.yaml) · narrative reference:
+    [infinity/documentation/infinity-api.md](../infinity/documentation/infinity-api.md)
+
+    **Not implemented:** `SYSTEM_JOIN` and `SYSTEM_LEAVE` exist as constants in
+    `system.events.ts` but have no gateway handlers yet.
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+defaultContentType: application/json
+
+x-infinity-protocol: socket.io
+
+servers:
+  local:
+    host: localhost:4000
+    protocol: ws
+    description: |
+      Socket.IO default namespace (`/`) at path `/infinity/socket.io`.
+      Same HTTP port as REST (default 4000).
+      Use the Socket.IO client library — not raw WebSocket frames.
+    x-infinity-protocol: socket.io
+    x-infinity-path: /infinity/socket.io
+    x-infinity-namespace: /
+
+channels:
+  galaxyMove:
+    address: GALAXY_MOVE
+    description: Client reports local position at cube depth.
+    messages:
+      galaxyMove:
+        $ref: '#/components/messages/GalaxyMove'
+    x-infinity-auth-required: true
+
+  galaxyUpdate:
+    address: GALAXY_UPDATE
+    description: |
+      Server broadcast after a successful `GALAXY_MOVE`.
+      Delivered to **all** connected clients.
+    messages:
+      galaxyUpdate:
+        $ref: '#/components/messages/GalaxyUpdate'
+    x-infinity-delivery: broadcast
+
+  requestCube:
+    address: REQUEST_CUBE
+    description: |
+      Request cube + stars for the cube containing a global galaxy position.
+      Server joins the client to room `cube:{uuid}` and replies with `CUBE_DATA`.
+    messages:
+      requestCube:
+        $ref: '#/components/messages/RequestCube'
+    x-infinity-auth-required: false
+
+  cubeData:
+    address: CUBE_DATA
+    description: |
+      Cube and stars response to `REQUEST_CUBE`.
+      Delivered to the **requesting client only**.
+    messages:
+      cubeData:
+        $ref: '#/components/messages/CubeData'
+    x-infinity-delivery: unicast
+
+  requestStar:
+    address: REQUEST_STAR
+    description: Request a star document by UUID.
+    messages:
+      requestStar:
+        $ref: '#/components/messages/RequestStar'
+    x-infinity-auth-required: false
+
+  starData:
+    address: STAR_DATA
+    description: |
+      Star document response to `REQUEST_STAR`.
+      Delivered to the **requesting client only**.
+    messages:
+      starData:
+        $ref: '#/components/messages/StarData'
+    x-infinity-delivery: unicast
+
+  galaxyError:
+    address: GALAXY_ERROR
+    description: |
+      Error response for galaxy handlers (`REQUEST_CUBE`, `REQUEST_STAR`, `GALAXY_MOVE`).
+      Delivered to the **requesting client only**.
+    messages:
+      galaxyError:
+        $ref: '#/components/messages/GalaxyError'
+    x-infinity-delivery: unicast
+
+  systemMove:
+    address: SYSTEM_MOVE
+    description: Client reports position at star-system depth.
+    messages:
+      systemMove:
+        $ref: '#/components/messages/SystemMove'
+    x-infinity-auth-required: true
+
+  systemUpdate:
+    address: SYSTEM_UPDATE
+    description: |
+      Server broadcast after a successful `SYSTEM_MOVE`.
+      Delivered to **all** connected clients.
+    messages:
+      systemUpdate:
+        $ref: '#/components/messages/SystemUpdate'
+    x-infinity-delivery: broadcast
+
+  systemError:
+    address: SYSTEM_ERROR
+    description: |
+      Error response for system handlers (currently `SYSTEM_MOVE`).
+      Delivered to the **requesting client only**.
+    messages:
+      systemError:
+        $ref: '#/components/messages/SystemError'
+    x-infinity-delivery: unicast
+
+  planetJoin:
+    address: PLANET_JOIN
+    description: |
+      Join the Socket.IO room named `planetId`. Restores hex from PostgreSQL or
+      rolls a random spawn. Emits `PLANET_UPDATE` to the planet room on success.
+    messages:
+      planetJoin:
+        $ref: '#/components/messages/PlanetJoin'
+    x-infinity-auth-required: true
+    x-infinity-room: '{planetId}'
+
+  planetLeave:
+    address: PLANET_LEAVE
+    description: |
+      Leave the planet Socket.IO room. Does not change `Player.location` in PostgreSQL.
+      No server reply event.
+    messages:
+      planetLeave:
+        $ref: '#/components/messages/PlanetLeave'
+    x-infinity-auth-required: false
+
+  planetMove:
+    address: PLANET_MOVE
+    description: |
+      Client reports hex movement on a planet surface.
+      Emits `PLANET_UPDATE` to the planet room on success.
+    messages:
+      planetMove:
+        $ref: '#/components/messages/PlanetMove'
+    x-infinity-auth-required: true
+    x-infinity-room: '{planetId}'
+
+  planetUpdate:
+    address: PLANET_UPDATE
+    description: |
+      Planet-room position update after `PLANET_JOIN` or `PLANET_MOVE`.
+      Delivered to all clients in room `{planetId}`.
+    messages:
+      planetUpdate:
+        $ref: '#/components/messages/PlanetUpdate'
+    x-infinity-delivery: room
+    x-infinity-room: '{planetId}'
+
+  planetError:
+    address: PLANET_ERROR
+    description: |
+      Error response for planet handlers (`PLANET_JOIN`, `PLANET_MOVE`, `PLANET_LEAVE`).
+      Delivered to the **requesting client only**.
+    messages:
+      planetError:
+        $ref: '#/components/messages/PlanetError'
+    x-infinity-delivery: unicast
+
+  unitUpdate:
+    address: UNIT_UPDATE
+    description: |
+      Server push when a unit finishes or stops movement on a planet surface.
+      Emitted after natural arrival (`setTimeout` from move order) or when a stop order
+      resolves the unit's interpolated position. There is no client-emitted counterpart.
+      Delivered to all clients in room `{planetId}`.
+    messages:
+      unitUpdate:
+        $ref: '#/components/messages/UnitUpdate'
+    x-infinity-delivery: room
+    x-infinity-room: '{planetId}'
+
+  unitError:
+    address: UNIT_ERROR
+    description: |
+      Reserved for future unit-related WebSocket error responses.
+      Not currently emitted.
+    messages:
+      unitError:
+        $ref: '#/components/messages/UnitError'
+    x-infinity-delivery: unicast
+
+operations:
+  receiveGalaxyMove:
+    action: receive
+    channel:
+      $ref: '#/channels/galaxyMove'
+    summary: Persist cube-depth local position
+    tags:
+      - name: Galaxy
+
+  sendGalaxyUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/galaxyUpdate'
+    summary: Broadcast cube movement to all clients
+    tags:
+      - name: Galaxy
+
+  receiveRequestCube:
+    action: receive
+    channel:
+      $ref: '#/channels/requestCube'
+    summary: Find-or-create cube for a global position
+    tags:
+      - name: Galaxy
+
+  sendCubeData:
+    action: send
+    channel:
+      $ref: '#/channels/cubeData'
+    summary: Reply with cube and stars
+    tags:
+      - name: Galaxy
+
+  receiveRequestStar:
+    action: receive
+    channel:
+      $ref: '#/channels/requestStar'
+    summary: Load star by id
+    tags:
+      - name: Galaxy
+
+  sendStarData:
+    action: send
+    channel:
+      $ref: '#/channels/starData'
+    summary: Reply with star document
+    tags:
+      - name: Galaxy
+
+  sendGalaxyError:
+    action: send
+    channel:
+      $ref: '#/channels/galaxyError'
+    summary: Report galaxy handler failure
+    tags:
+      - name: Galaxy
+
+  receiveSystemMove:
+    action: receive
+    channel:
+      $ref: '#/channels/systemMove'
+    summary: Persist star-system map position
+    tags:
+      - name: System
+
+  sendSystemUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/systemUpdate'
+    summary: Broadcast system movement to all clients
+    tags:
+      - name: System
+
+  sendSystemError:
+    action: send
+    channel:
+      $ref: '#/channels/systemError'
+    summary: Report system handler failure
+    tags:
+      - name: System
+
+  receivePlanetJoin:
+    action: receive
+    channel:
+      $ref: '#/channels/planetJoin'
+    summary: Join planet room and resolve hex position
+    tags:
+      - name: Planet
+
+  receivePlanetLeave:
+    action: receive
+    channel:
+      $ref: '#/channels/planetLeave'
+    summary: Leave planet room
+    tags:
+      - name: Planet
+
+  receivePlanetMove:
+    action: receive
+    channel:
+      $ref: '#/channels/planetMove'
+    summary: Persist hex movement on planet surface
+    tags:
+      - name: Planet
+
+  sendPlanetUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/planetUpdate'
+    summary: Broadcast position within planet room
+    tags:
+      - name: Planet
+
+  sendPlanetError:
+    action: send
+    channel:
+      $ref: '#/channels/planetError'
+    summary: Report planet handler failure
+    tags:
+      - name: Planet
+
+  sendUnitUpdate:
+    action: send
+    channel:
+      $ref: '#/channels/unitUpdate'
+    summary: Push unit arrival to planet room
+    tags:
+      - name: Units
+
+  sendUnitError:
+    action: send
+    channel:
+      $ref: '#/channels/unitError'
+    summary: Report unit handler failure
+    tags:
+      - name: Units
+
+components:
+  messages:
+    GalaxyMove:
+      name: GalaxyMove
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/local-cube-position.json
+
+    GalaxyUpdate:
+      name: GalaxyUpdate
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/galaxy-update.json
+
+    RequestCube:
+      name: RequestCube
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/global-position.json
+
+    CubeData:
+      name: CubeData
+      contentType: application/json
+      payload:
+        $ref: schemas/responses/cube-with-stars.json
+
+    RequestStar:
+      name: RequestStar
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/request-star.json
+
+    StarData:
+      name: StarData
+      contentType: application/json
+      payload:
+        $ref: schemas/responses/star.json
+
+    GalaxyError:
+      name: GalaxyError
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/socket-error.json
+
+    SystemMove:
+      name: SystemMove
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/system-move.json
+
+    SystemUpdate:
+      name: SystemUpdate
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/system-update.json
+
+    SystemError:
+      name: SystemError
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/socket-error.json
+
+    PlanetJoin:
+      name: PlanetJoin
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/planet-id.json
+
+    PlanetLeave:
+      name: PlanetLeave
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/planet-id.json
+
+    PlanetMove:
+      name: PlanetMove
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/planet-move.json
+
+    PlanetUpdate:
+      name: PlanetUpdate
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/planet-update.json
+
+    PlanetError:
+      name: PlanetError
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/socket-error.json
+
+    UnitUpdate:
+      name: UnitUpdate
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/unit-update.json
+
+    UnitError:
+      name: UnitError
+      contentType: application/json
+      payload:
+        $ref: schemas/socket/socket-error.json

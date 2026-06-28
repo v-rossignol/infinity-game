@@ -1,0 +1,421 @@
+openapi: 3.1.0
+info:
+  title: Solaris — Client API Contract
+  version: 0.1.0
+  description: |
+    Integration contract for the **Solaris** star system view client (`solaris/`).
+
+    This file documents **which Infinity Server routes Solaris consumes**, how the
+    client calls them (HTTP config, bootstrap order, error handling), the **landing page
+    UI**, and what is planned next. It is a client-side view — server behavior remains
+    defined in [auth-api.yaml](./auth-api.yaml), [game-api.yaml](./game-api.yaml), and
+    [asyncapi.yaml](./asyncapi.yaml).
+
+    ## Client deployment
+
+    | Field | Value |
+    |-------|-------|
+    | App base path | `/solaris/` |
+    | Dev port | `3003` |
+    | HTTP client base URL | `/infinity` (relative) |
+    | Credentials | `withCredentials: true` on all requests |
+    | Session storage | Cookie `infinity_token` only — **no JWT in JS state** |
+
+    **Dev proxy:** Vite forwards `/infinity/*` → `http://localhost:4000`. With Caddy on
+    port 80, the client and API share the same origin once the `/solaris/*` route is
+    wired (see [../documentation/TO-BE-FIXED.md](../documentation/TO-BE-FIXED.md)).
+
+    **Upstream navigation:** Galaxy View (planned) navigates to `/solaris/{systemId}` to
+    relocate the player into the selected star system, then the client redirects to
+    `/solaris/` on success. Players may also open `/solaris/` directly when their persisted
+    location is already at star-system depth. On `401`, Solaris links to `/stellar-gate/`.
+
+    **Downstream navigation:** Selecting a planet will call `POST /players/me/location/enter-planet`
+    then full-page navigate to `/terra-view/` (planned).
+
+    ## Routes
+
+    | Path | Component | Purpose |
+    |------|-----------|---------|
+    | `/solaris/` | `LandingPage` | Bootstrap and display current star system |
+    | `/solaris/{systemId}` | `SystemRelocatePage` | Relocate player to `systemId`, then redirect to `/solaris/` |
+
+    Routing uses React Router with `basename="/solaris"` (`src/App.tsx`, `src/main.tsx`).
+
+    ## Landing page (`LandingPage`)
+
+    The landing route renders a dark full-viewport column: header + centered main content.
+
+    | UI state | Trigger | Main content | Header (`ClientHeader`) |
+    |----------|---------|--------------|-------------------------|
+    | `loading` | Bootstrap in progress | “Connecting…” | “Loading…” |
+    | `error` | Auth failure, missing player, or not in a star system | Alert message + link to Stellar Gate | Title only (“Solaris”) |
+    | `ready` | Bootstrap succeeded | Card: **Player** (username), **Star** (system name) | Player and star context |
+
+    **Client modules:** `src/components/LandingPage.tsx`, `src/components/ui/ClientHeader.tsx`,
+    `src/hooks/useLandingPageBootstrap.ts`.
+
+    ## System relocate page (`SystemRelocatePage`)
+
+    Blank full-viewport page at `/solaris/{systemId}`. On mount, calls
+    `POST /players/me/location/enter-system` with `{ starSystemId: systemId, x: 0, y: 0 }`.
+
+    | UI state | Trigger | Main content |
+    |----------|---------|--------------|
+    | `loading` | Relocate in progress | “Relocating…” |
+    | `error` | Missing `systemId`, auth failure, or server rejection | Alert message; Stellar Gate link on `401`; “Back to Solaris” link |
+
+    On success, the client replaces history with `/solaris/` (landing page bootstrap runs there).
+
+    **Client modules:** `src/components/SystemRelocatePage.tsx`, `src/hooks/useSystemRelocate.ts`,
+    `src/utils/relocateErrors.ts`.
+
+    ## Bootstrap flow (`useLandingPageBootstrap`)
+
+    On first load, Solaris runs this sequence:
+
+    1. `GET /auth/me` — restore session; on `401`, show sign-in error with Stellar Gate link.
+    2. `POST /players/me/enter-game` — idempotent spawn/resume; requires a player profile.
+    3. Resolve `systemId` from `player.location.starSystem.id` — abort if missing (user must
+       travel to a star system first).
+    4. `GET /systems/{systemId}` — load star system name (and, eventually, planets for
+       the PixiJS map).
+
+    The landing page displays the authenticated username and star system name. Planet orbit
+    rendering and player map position are **not wired yet**.
+
+    ## Implementation status
+
+    | Area | Status | Client module |
+    |------|--------|---------------|
+    | Session restore | **Implemented** | `src/services/authService.ts` |
+    | Enter game / spawn | **Implemented** | `src/services/playerService.ts` |
+    | Star system fetch | **Implemented** | `src/services/starSystemService.ts` |
+    | Landing page UI | **Implemented** | `src/components/LandingPage.tsx` |
+    | System relocate page | **Implemented** | `src/components/SystemRelocatePage.tsx` |
+    | Enter star system (relocate) | **Implemented** | `src/services/playerService.ts` |
+    | PixiJS system map | Planned | — |
+    | Planet selection → Terra View | Planned | — |
+    | Player position in system | Planned | — |
+    | Leave system → Galaxy View | Planned | — |
+    | Socket.IO system room | Planned | — (`SYSTEM_MOVE`, `SYSTEM_UPDATE`) |
+
+    Client types live in `solaris/src/types/` and should stay aligned with
+    [schemas/](./schemas/).
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: http://localhost:3003/infinity
+    description: Solaris dev server (Vite proxy to NestJS :4000)
+  - url: http://localhost/infinity
+    description: Caddy reverse proxy (same-origin with `/solaris/` once routed)
+  - url: http://localhost:4000/infinity
+    description: Direct Infinity Server access (backend tests only)
+
+tags:
+  - name: Bootstrap
+    description: Session and player state required before system view
+  - name: Star systems
+    description: Star system document and map data
+  - name: Navigation
+    description: View transitions between galaxy, system, and planet depth
+  - name: Real-time
+    description: Socket.IO events — see asyncapi.yaml
+
+paths:
+  /auth/me:
+    get:
+      tags: [Bootstrap]
+      operationId: solarisGetAuthMe
+      summary: Restore session
+      description: |
+        First step of Solaris bootstrap. Returns the signed-in user for the landing page
+        header and location card.
+
+        **Server spec:** [auth-api.yaml](./auth-api.yaml) — `getAuthMe`
+      x-solaris-status: implemented
+      x-solaris-client-service: src/services/authService.ts
+      x-solaris-client-type: src/types/auth.ts#User
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Current user (flat object, not wrapped in `{ user }`)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/auth/auth-user.json
+        '401':
+          description: Not signed in — client shows Stellar Gate link
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/enter-game:
+    post:
+      tags: [Bootstrap]
+      operationId: solarisEnterGame
+      summary: Bootstrap or resume playable state
+      description: |
+        Second step of Solaris bootstrap. Ensures the player profile exists.
+        Solaris requires `player.location.starSystem.id` (star-system or planet depth)
+        before fetching the star system document.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `enterGame`
+      x-solaris-status: implemented
+      x-solaris-client-service: src/services/playerService.ts
+      x-solaris-client-type: src/types/player.ts#EnterGameResponse
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Player profile (spawned or existing)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '503':
+          description: Spawn allocation failed after retries
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /systems/{systemId}:
+    get:
+      tags: [Star systems]
+      operationId: solarisGetStarSystem
+      summary: Load star system for landing page and map
+      description: |
+        Third step of Solaris bootstrap. Fetches the MongoDB star system document whose
+        `_id` matches `player.location.starSystem.id`. The landing page displays
+        `name`; future PixiJS rendering will use `planets[]` (`x`, `y`, `radius`, `type`).
+
+        `systemId` is the parent star UUID (`Star.id`).
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `getStarSystem`
+      x-solaris-status: implemented
+      x-solaris-client-service: src/services/starSystemService.ts
+      x-solaris-client-type: src/types/starSystem.ts#StarSystem
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          description: Parent star UUID from `player.location.starSystem.id`
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Star system document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/star-system.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          description: Star not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/location/enter-system:
+    post:
+      tags: [Navigation]
+      operationId: solarisEnterStarSystem
+      summary: Transition cube → star system
+      description: |
+        Invoked by `SystemRelocatePage` at `/solaris/{systemId}`. Moves the player to the
+        given star system at local map coordinates `(0, 0)`, then the client navigates to
+        `/solaris/`. Galaxy View (upstream) is expected to link here when the player selects
+        a star system.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `enterStarSystem`
+      x-solaris-status: implemented
+      x-solaris-client-service: src/services/playerService.ts#relocateToStarSystem
+      x-solaris-client-hook: src/hooks/useSystemRelocate.ts
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/enter-star-system.json
+      responses:
+        '200':
+          description: Updated player at star-system depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/enter-planet:
+    post:
+      tags: [Navigation]
+      operationId: solarisEnterPlanet
+      summary: Transition star system → planet
+      description: |
+        **Planned** — invoked when the player selects a planet on the system map, before
+        full-page navigation to `/terra-view/`.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `enterPlanet`
+      x-solaris-status: planned
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/enter-planet.json
+      responses:
+        '200':
+          description: Updated player at planet depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+        '422':
+          description: Gas planets have no enterable surface
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/location/leave-system:
+    post:
+      tags: [Navigation]
+      operationId: solarisLeaveStarSystem
+      summary: Transition star system → cube
+      description: |
+        **Planned** — return to Galaxy View. Client calls this then navigates to `/galaxy/`.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `leaveStarSystem`
+      x-solaris-status: planned
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/leave-star-system.json
+      responses:
+        '200':
+          description: Updated player at cube depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/system:
+    patch:
+      tags: [Star systems]
+      operationId: solarisUpdateSystemPosition
+      summary: Update player position on the system map
+      description: |
+        **Planned** — persist local `(x, y)` map coordinates while the player moves in
+        the PixiJS system view. Coordinates match server star-system depth layout.
+
+        **Server spec:** [game-api.yaml](./game-api.yaml) — `updateSystemPosition`
+      x-solaris-status: planned
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/shared/vec2-local.json
+      responses:
+        '200':
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+x-solaris-realtime:
+  description: |
+    Socket.IO integration is planned. Event names and payloads follow
+    [asyncapi.yaml](./asyncapi.yaml). `SYSTEM_JOIN` / `SYSTEM_LEAVE` are not implemented
+    on the server yet.
+  status: planned
+  events:
+    - name: SYSTEM_MOVE
+      direction: client-to-server
+      purpose: Report player `(x, y)` movement on the star system map
+      asyncapi: asyncapi.yaml#/channels/systemMove
+    - name: SYSTEM_UPDATE
+      direction: server-to-client
+      purpose: Broadcast position updates after a successful move
+      asyncapi: asyncapi.yaml#/channels/systemUpdate
+    - name: SYSTEM_ERROR
+      direction: server-to-client
+      purpose: Handler error delivered to requesting client only
+      asyncapi: asyncapi.yaml#/channels/systemError
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/bearerAuth
+    cookieAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/cookieAuth
+  responses:
+    BadRequest:
+      $ref: openapi-shared.yaml#/components/responses/BadRequest
+    Unauthorized:
+      $ref: openapi-shared.yaml#/components/responses/Unauthorized
+    NotFound:
+      $ref: openapi-shared.yaml#/components/responses/NotFound

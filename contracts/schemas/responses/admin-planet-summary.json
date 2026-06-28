@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/admin-planet-summary.json",
+  "title": "AdminPlanetSummary",
+  "description": "Planet metadata for admin list views (surface hexagons omitted).",
+  "x-infinity-source": "infinity/src/modules/admin/admin.service.ts#AdminPlanetSummary",
+  "type": "object",
+  "properties": {
+    "_id": { "type": "string" },
+    "name": { "type": "string" },
+    "starSystemId": { "type": "string", "format": "uuid" },
+    "type": {
+      "type": "string",
+      "enum": ["rocky", "gas", "ice", "lava"]
+    },
+    "radius": { "type": "integer", "minimum": 5, "maximum": 15 },
+    "resources": {
+      "type": "object",
+      "additionalProperties": { "type": "number" }
+    },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": [
+    "_id",
+    "name",
+    "starSystemId",
+    "type",
+    "radius",
+    "resources",
+    "createdAt",
+    "updatedAt"
+  ],
+  "additionalProperties": false
+}

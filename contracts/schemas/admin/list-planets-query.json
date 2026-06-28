@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/admin/list-planets-query.json",
+  "title": "ListPlanetsQuery",
+  "description": "Query parameters for GET /infinity/admin/planets.",
+  "x-infinity-source": "infinity/src/modules/admin/dto/list-planets-query.dto.ts",
+  "x-infinity-usage": "query",
+  "type": "object",
+  "properties": {
+    "page": { "type": "integer", "minimum": 1, "default": 1 },
+    "count": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20 }
+  },
+  "additionalProperties": false
+}

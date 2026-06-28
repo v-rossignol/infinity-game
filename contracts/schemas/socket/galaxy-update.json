@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/galaxy-update.json",
+  "title": "GalaxyUpdate",
+  "description": "GALAXY_UPDATE broadcast payload.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleGalaxyMove",
+  "type": "object",
+  "properties": {
+    "playerId": { "type": "string", "format": "uuid" },
+    "x": { "type": "number" },
+    "y": { "type": "number" },
+    "z": { "type": "number" }
+  },
+  "required": ["playerId", "x", "y", "z"],
+  "additionalProperties": false
+}

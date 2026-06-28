@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/http-error.json",
+  "title": "HttpError",
+  "description": "Standard NestJS HTTP exception body.",
+  "type": "object",
+  "properties": {
+    "statusCode": { "type": "integer" },
+    "message": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "array", "items": { "type": "string" } }
+      ]
+    },
+    "error": { "type": "string" }
+  },
+  "required": ["statusCode", "message"],
+  "additionalProperties": false
+}

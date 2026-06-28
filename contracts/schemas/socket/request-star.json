@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/request-star.json",
+  "title": "RequestStar",
+  "description": "REQUEST_STAR client payload.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleRequestStar",
+  "type": "object",
+  "properties": {
+    "starId": { "type": "string", "format": "uuid" }
+  },
+  "required": ["starId"],
+  "additionalProperties": false
+}

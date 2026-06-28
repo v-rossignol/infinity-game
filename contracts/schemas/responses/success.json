@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/success.json",
+  "title": "SuccessResponse",
+  "description": "Simple success flag used by logout and forgot-password.",
+  "type": "object",
+  "properties": {
+    "success": { "type": "boolean", "const": true }
+  },
+  "required": ["success"],
+  "additionalProperties": false
+}

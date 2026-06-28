@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/planet-move.json",
+  "title": "PlanetMove",
+  "description": "PLANET_MOVE client payload.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handlePlanetMove",
+  "type": "object",
+  "properties": {
+    "planetId": { "type": "string", "minLength": 1 },
+    "q": { "type": "number" },
+    "r": { "type": "number" }
+  },
+  "required": ["planetId", "q", "r"],
+  "additionalProperties": false
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/leave-star-system.json",
+  "title": "LeaveStarSystemDto",
+  "description": "View transition star system → cube for POST /infinity/players/me/location/leave-system.",
+  "x-infinity-source": "infinity/src/modules/players/dto/location-transition.dto.ts#LeaveStarSystemDto",
+  "x-infinity-usage": "body",
+  "$ref": "../shared/vec3-local.json"
+}

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/stop-unit.json",
+  "title": "StopUnit",
+  "description": "Request body for POST /players/me/units/{unitId}/stop. Stops an in-progress move on the specified planet.",
+  "x-infinity-source": "infinity/src/modules/units/dto/stop-unit.dto.ts#StopUnitDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet the unit currently occupies. Must match the unit's stored planetId."
+    }
+  },
+  "required": ["planetId"],
+  "additionalProperties": false
+}

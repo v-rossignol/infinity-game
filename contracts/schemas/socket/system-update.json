@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/socket/system-update.json",
+  "title": "SystemUpdate",
+  "description": "SYSTEM_UPDATE broadcast payload.",
+  "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleSystemMove",
+  "type": "object",
+  "properties": {
+    "playerId": { "type": "string", "format": "uuid" },
+    "x": { "type": "number" },
+    "y": { "type": "number" }
+  },
+  "required": ["playerId", "x", "y"],
+  "additionalProperties": false
+}

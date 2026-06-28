@@ -1,0 +1,1011 @@
+openapi: 3.1.0
+info:
+  title: Infinity Server — Game API
+  version: 0.3.0
+  description: |
+    Gameplay routes: health, players, galaxy, planets, and resources.
+
+    **Base path:** `/infinity` (see `servers`).
+
+    **Authentication:** Most galaxy and player routes require JWT (cookie `infinity_token`
+    or `Authorization: Bearer <jwt>`). Health, public player lookup, planets, and resources
+    are public unless noted.
+
+    **Related specs:** [auth-api.yaml](./auth-api.yaml) · [admin-api.yaml](./admin-api.yaml)
+    · **Socket.IO:** [asyncapi.yaml](./asyncapi.yaml)
+  contact:
+    name: Roro LeSage
+  license:
+    name: MIT
+    identifier: MIT
+
+servers:
+  - url: http://localhost:4000/infinity
+    description: Local development (port configurable via `PORT`, default 4000)
+
+tags:
+  - name: Health
+  - name: Players
+  - name: Galaxy
+  - name: Systems
+  - name: Planets
+  - name: Resources
+  - name: Units
+
+paths:
+  /health:
+    get:
+      tags: [Health]
+      operationId: getHealth
+      summary: Server health check
+      description: Lightweight check; does not verify database connectivity.
+      security: []
+      responses:
+        '200':
+          description: Server is running
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/health.json
+
+  /players/me/enter-game:
+    post:
+      tags: [Players]
+      operationId: enterGame
+      summary: Bootstrap or resume playable state
+      description: |
+        First-time entry orchestrates world spawn (cube → star → planet → hex).
+        Idempotent when `location` is already set.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Player profile (spawned or existing)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '503':
+          description: Spawn allocation failed after retries
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units:
+    get:
+      tags: [Players, Units]
+      operationId: listMyUnitInstances
+      summary: List caller-owned unit instances
+      description: |
+        Returns all unit instances owned by the authenticated player's profile,
+        each with an embedded catalog `type` definition.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      responses:
+        '200':
+          description: Owned unit instances
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/unit-instance-with-type-list.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          description: Player profile not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/move:
+    post:
+      tags: [Players, Units]
+      operationId: moveUnitInstance
+      summary: Order a unit to move to a target hex
+      description: |
+        Initiates timed movement for the caller-owned unit to a destination hex on the
+        same planet. The unit must be `idle`, mobile, and within range.
+
+        On success the unit's status becomes `moving` and `arrivalAt` is returned.
+        When the unit arrives the server pushes a `UNIT_UPDATE` WebSocket event to the
+        `planetId` Socket.IO room with `status: 'idle'` and the final `location`.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/move-unit.json
+      responses:
+        '200':
+          description: Move order accepted — unit is now moving
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/move-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is already moving
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not at planet depth, not mobile, or target out of range
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/stop:
+    post:
+      tags: [Players, Units]
+      operationId: stopUnitInstance
+      summary: Stop a unit that is currently moving
+      description: |
+        Halts in-progress movement for the caller-owned unit on the specified planet.
+        The unit must be `moving`.
+
+        The server resolves the unit's current surface position from the active movement
+        metadata (origin, destination, startedAt, arrivalAt), persists it, sets status to
+        `idle`, and pushes a `UNIT_UPDATE` WebSocket event to the `planetId` room — same
+        delivery as natural arrival.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/stop-unit.json
+      responses:
+        '200':
+          description: Stop order accepted — unit is now idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stop-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not moving
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on the specified planet or movement metadata invalid
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/{userId}:
+    get:
+      tags: [Players]
+      operationId: getPlayerByUserId
+      summary: Get or create player profile
+      description: "Public route. Creates a freshy player (`location: null`) when absent."
+      security: []
+      parameters:
+        - $ref: openapi-shared.yaml#/components/parameters/userId
+      responses:
+        '200':
+          description: Player profile
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player.json
+
+  /players/me/location:
+    patch:
+      tags: [Players]
+      operationId: updatePlayerLocation
+      summary: Replace player location
+      description: "Sets the full `location` object or `null`."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/update-location.json
+      responses:
+        '200':
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /players/me/location/enter-system:
+    post:
+      tags: [Players]
+      operationId: enterStarSystem
+      summary: Transition cube → star system
+      description: |
+        Regular players must already be at cube depth.
+        **Admin users** (`role: admin`) may relocate directly to any star system from any depth;
+        the server resolves `cube` from the target star and validates that the star exists (404 if not found).
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/enter-star-system.json
+      responses:
+        '200':
+          description: Updated player at star-system depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/enter-planet:
+    post:
+      tags: [Players]
+      operationId: enterPlanet
+      summary: Transition star system → planet
+      description: |
+        Regular players must already be at star-system depth.
+        Hex coordinates (`q`, `r`) are optional — omit them for planet overview (no hex selected).
+        **Admin users** (`role: admin`) may relocate directly to any planet from any depth;
+        the server resolves `cube` and `starSystem` from the target planet and validates
+        that the planet exists in the star system (404 if not found).
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/enter-planet.json
+      responses:
+        '200':
+          description: Updated player at planet depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+        '422':
+          description: Gas planets have no enterable surface
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/location/leave-planet:
+    post:
+      tags: [Players]
+      operationId: leavePlanet
+      summary: Transition planet → star system
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/leave-planet.json
+      responses:
+        '200':
+          description: Updated player at star-system depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/leave-system:
+    post:
+      tags: [Players]
+      operationId: leaveStarSystem
+      summary: Transition star system → cube
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/leave-star-system.json
+      responses:
+        '200':
+          description: Updated player at cube depth
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/cube:
+    patch:
+      tags: [Players]
+      operationId: updateCubePosition
+      summary: Update cube-depth local position
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/shared/vec3-local.json
+      responses:
+        '200':
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/system:
+    patch:
+      tags: [Players]
+      operationId: updateSystemPosition
+      summary: Update star-system-depth map position
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/shared/vec2-local.json
+      responses:
+        '200':
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/location/planet:
+    patch:
+      tags: [Players]
+      operationId: updatePlanetHex
+      summary: Select or update hex at planet depth
+      description: |
+        Sets `planet.hex_coords` when the player is at planet depth (overview or hex).
+        Use after `enter-planet` without hex coordinates, or to move to another hex.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/update-planet-hex.json
+      responses:
+        '200':
+          description: Updated player
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/player-wrapper.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '409':
+          $ref: openapi-shared.yaml#/components/responses/Conflict
+
+  /players/me/can-enter/cube/{cubeId}:
+    get:
+      tags: [Players]
+      operationId: canEnterCube
+      summary: Check whether the player can enter a cube
+      description: |
+        **Admin users** (`role: admin`) always receive `canEnter: true`.
+        Regular players receive `true` only when the target cube matches their current
+        `location.cube.id`; movement is not enabled yet.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: cubeId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enter permission for the requested cube
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/can-enter.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /players/me/can-enter/system/{starSystemId}:
+    get:
+      tags: [Players]
+      operationId: canEnterStarSystem
+      summary: Check whether the player can enter a star system
+      description: |
+        **Admin users** (`role: admin`) always receive `canEnter: true`.
+        Regular players receive `true` only when they own at least one unit at **star-system**
+        depth (`place_level = starSystem`) in the target system. Planet-surface units do not
+        grant access to Solaris.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: starSystemId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Enter permission for the requested star system
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/can-enter.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /players/me/can-enter/planet/{planetId}:
+    get:
+      tags: [Players]
+      operationId: canEnterPlanet
+      summary: Check whether the player can enter a planet
+      description: |
+        **Admin users** (`role: admin`) always receive `canEnter: true`.
+        Regular players receive `true` only when the target planet matches their current
+        `location.planet.id`; movement is not enabled yet.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}-p[1-9][0-9]*$'
+      responses:
+        '200':
+          description: Enter permission for the requested planet
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/can-enter.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /cubes/{x}/{y}/{z}:
+    get:
+      tags: [Galaxy]
+      operationId: getCubeByOrigin
+      summary: Get or generate cube by center coordinates
+      description: |
+        Cube centers lie on a 10 LY grid. Coordinates are cube **center** values
+        (multiples of 10), not minimum corners.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterX
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterY
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterZ
+      responses:
+        '200':
+          description: Cube and stars
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/cube-with-stars.json
+        '400':
+          description: Invalid or non-grid-aligned coordinates
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /cubes/{x}/{y}/{z}/stars:
+    get:
+      tags: [Galaxy]
+      operationId: getCubeStarsByOrigin
+      summary: Get or generate stars for a cube
+      description: "Same find-or-create behavior as `GET /cubes/{x}/{y}/{z}` but returns stars only."
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterX
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterY
+        - $ref: openapi-shared.yaml#/components/parameters/cubeCenterZ
+      responses:
+        '200':
+          description: Stars in the cube
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stars-list.json
+        '400':
+          description: Invalid or non-grid-aligned coordinates
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /cubes/by-name/{name}:
+    get:
+      tags: [Galaxy]
+      operationId: getCubeByName
+      summary: Look up cube by hash-based name
+      description: Does not generate a new cube when absent.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: name
+          in: path
+          required: true
+          description: Hash-based cube label (e.g. `kikyhk`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Cube and stars
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/cube-with-stars.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          description: Cube not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /stars/{id}:
+    get:
+      tags: [Galaxy]
+      operationId: getStarById
+      summary: Get star by UUID
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Star document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/star.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /stars:
+    get:
+      tags: [Galaxy]
+      operationId: listStarsByCube
+      summary: List stars in a cube
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: cube_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Stars (empty array when cube is unknown or has no stars)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stars-list.json
+        '400':
+          description: Missing or invalid `cube_id`
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /systems/{systemId}:
+    get:
+      tags: [Systems]
+      operationId: getStarSystem
+      summary: Get or generate star system
+      description: |
+        `systemId` is the parent star UUID (`Star.id`). System `_id` equals the star UUID.
+        Returns 404 when the star does not exist.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          description: Parent star UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Star system document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/star-system.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '404':
+          description: Star not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /systems/{systemId}/units:
+    get:
+      tags: [Systems, Units]
+      operationId: listStarSystemUnitInstances
+      summary: List unit instances in a star system
+      description: |
+        Returns units at **starSystem** depth only (`place_level = starSystem`).
+        Excludes units placed on planets inside the system.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: systemId
+          in: path
+          required: true
+          description: Parent star UUID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Star-system-depth unit instances
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/unit-instance-with-type-list.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+
+  /planets/{planetId}:
+    get:
+      tags: [Planets]
+      operationId: getPlanet
+      summary: Get or generate planet surface
+      description: |
+        `systemId` query param is **required on first entry** when no planet document exists.
+        Gas planets return 422 and never get a document.
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          description: Planet id (`StarSystem.planets[].id`)
+          schema:
+            type: string
+        - name: systemId
+          in: query
+          required: false
+          description: Parent star UUID — required on first document creation
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Planet surface document
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/planet.json
+        '400':
+          description: First entry without `systemId`
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+        '422':
+          description: Planet type is `gas` — no enterable surface
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /planets/{planetId}/units:
+    get:
+      tags: [Planets, Units]
+      operationId: listPlanetUnitInstances
+      summary: List unit instances on a planet
+      description: |
+        Returns units at **planet** depth only (`place_level = planet`) for the given planet id.
+        Same public visibility as the planet surface route.
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          description: Planet id (`StarSystem.planets[].id`)
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Planet-surface unit instances
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/unit-instance-with-type-list.json
+
+  /units:
+    get:
+      tags: [Units]
+      operationId: listUnitInstancesByOwner
+      summary: List unit instances by owner (admin)
+      description: |
+        Admin tooling route. Returns all unit instances owned by the given player id,
+        each with an embedded catalog `type` definition.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: ownerId
+          in: query
+          required: true
+          description: Player profile UUID (`Player.id`)
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Owned unit instances
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/unit-instance-with-type-list.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Authenticated user is not an admin
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Player profile not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /resources/planet/{planetId}/hex/{q}/{r}:
+    get:
+      tags: [Resources]
+      operationId: getPlanetHexResources
+      summary: List resources on a planet hex
+      description: |
+        Resolves permanent terrain resources for the hex cell identified by axial coordinates
+        `(q, r)`. Uses the MongoDB planet document when present, otherwise falls back to an
+        admin preview planet cached in Redis (1 hour TTL).
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: q
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+        - name: r
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 0
+      responses:
+        '200':
+          description: Hex resources
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/planet-hex-resources.json
+        '400':
+          $ref: openapi-shared.yaml#/components/responses/BadRequest
+        '404':
+          $ref: openapi-shared.yaml#/components/responses/NotFound
+
+  /resources/planet/{planetId}:
+    get:
+      tags: [Resources]
+      operationId: listPlanetResources
+      summary: List resource nodes on a planet
+      description: |
+        Reads the dedicated `resources` MongoDB collection (may be empty).
+        Preview planets cached in Redis return an empty array.
+      security: []
+      parameters:
+        - name: planetId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource nodes (possibly empty array)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: schemas/responses/resource-node.json
+
+components:
+  securitySchemes:
+    bearerAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/bearerAuth
+    cookieAuth:
+      $ref: openapi-shared.yaml#/components/securitySchemes/cookieAuth
+  parameters:
+    userId:
+      $ref: openapi-shared.yaml#/components/parameters/userId
+    cubeCenterX:
+      $ref: openapi-shared.yaml#/components/parameters/cubeCenterX
+    cubeCenterY:
+      $ref: openapi-shared.yaml#/components/parameters/cubeCenterY
+    cubeCenterZ:
+      $ref: openapi-shared.yaml#/components/parameters/cubeCenterZ
+  responses:
+    BadRequest:
+      $ref: openapi-shared.yaml#/components/responses/BadRequest
+    Unauthorized:
+      $ref: openapi-shared.yaml#/components/responses/Unauthorized
+    NotFound:
+      $ref: openapi-shared.yaml#/components/responses/NotFound
+    Conflict:
+      $ref: openapi-shared.yaml#/components/responses/Conflict

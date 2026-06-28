@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/unit-instance-with-type-list.json",
+  "title": "UnitInstanceWithTypeList",
+  "description": "Unbounded list of unit instances with embedded catalog types.",
+  "type": "array",
+  "items": {
+    "$ref": "unit-instance-with-type.json"
+  }
+}

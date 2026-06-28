@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/cube-identity.json",
+  "title": "CubeIdentity",
+  "description": "Reference to a galaxy cube by UUID.",
+  "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#CubeIdentity",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "format": "uuid" }
+  },
+  "required": ["id"],
+  "additionalProperties": false
+}

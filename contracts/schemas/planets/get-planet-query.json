@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/planets/get-planet-query.json",
+  "title": "GetPlanetQueryDto",
+  "description": "Optional query parameters for GET /infinity/planets/:planetId.",
+  "x-infinity-source": "infinity/src/modules/planets/dto/get-planet-query.dto.ts",
+  "x-infinity-usage": "query",
+  "type": "object",
+  "properties": {
+    "systemId": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}
