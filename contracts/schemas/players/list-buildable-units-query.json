@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/list-buildable-units-query.json",
+  "title": "ListBuildableUnitsQuery",
+  "description": "Optional query params for GET /players/me/units/{unitId}/buildable. When filtering by target hex biome, planetId, q, and r must all be provided.",
+  "x-infinity-source": "infinity/src/modules/units/dto/list-buildable-units-query.dto.ts#ListBuildableUnitsQueryDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet id used to resolve the target hex biome."
+    },
+    "q": {
+      "type": "integer",
+      "description": "Target hex axial q coordinate."
+    },
+    "r": {
+      "type": "integer",
+      "description": "Target hex axial r coordinate."
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/stop-extraction-order-result.json",
+  "title": "StopExtractionOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/stop-extraction. The unit status is now idle; a UNIT_UPDATE WebSocket event carries updated cargo.",
+  "x-infinity-source": "infinity/src/modules/units/unit-extraction.service.ts#StopExtractionOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "idle" },
+    "extractedAmount": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Partial tick yield applied to cargo when extraction was stopped."
+    }
+  },
+  "required": ["unitId", "status", "extractedAmount"],
+  "additionalProperties": false
+}

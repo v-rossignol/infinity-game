@@ -6,9 +6,14 @@ terra-view/
 solaris/
 galaxy/
 
-# Deployment — will have its own git repository
+# Deployment & packages — will have their own git repository
 deployment/
+packages/
 
 # Media and binary assets
 media/
 assets/
+
+# Dependencies
+node_modules/
+

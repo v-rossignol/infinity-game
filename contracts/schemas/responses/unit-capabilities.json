@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/unit-capabilities.json",
+  "title": "UnitCapabilities",
+  "description": "Optional capability blocks attached to a unit type definition.",
+  "x-infinity-source": "packages/shared-types/src/Unit.ts#UnitCapabilities",
+  "type": "object",
+  "properties": {
+    "cargo": {
+      "type": "object",
+      "description": "Cargo storage. Total quantity across all resource types cannot exceed size.",
+      "properties": {
+        "size": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Maximum total cargo quantity."
+        }
+      },
+      "required": ["size"],
+      "additionalProperties": false
+    },
+    "extraction": {
+      "type": "object",
+      "description": "Planet-surface resource extraction.",
+      "properties": {
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Multiplier applied to biome resource quantity per extraction tick."
+        },
+        "types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Allowed terrain resource ids. Use \"*\" to allow any resource type present in the hex."
+        }
+      },
+      "required": ["speed", "types"],
+      "additionalProperties": false
+    },
+    "building": {
+      "type": "object",
+      "description": "Ability to construct other units on the planet surface.",
+      "properties": {
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Multiplier applied to build progress per tick."
+        },
+        "vehicules": { "$ref": "#/$defs/buildTarget" },
+        "buildings": { "$ref": "#/$defs/buildTarget" }
+      },
+      "required": ["speed"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "buildTarget": {
+      "type": "object",
+      "description": "What a building capability may construct for one unit category.",
+      "properties": {
+        "sizes": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["small", "medium", "large"] },
+          "minItems": 1,
+          "description": "Allowed sizes (explicit list)."
+        },
+        "units": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Allowed unit type ids. Use \"*\" to allow any unit of this category."
+        }
+      },
+      "required": ["sizes", "units"],
+      "additionalProperties": false
+    }
+  }
+}

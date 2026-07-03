@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/drop-cargo-order-result.json",
+  "title": "DropCargoOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/drop. Cargo has been reduced; a UNIT_UPDATE WebSocket event carries the updated cargo.",
+  "x-infinity-source": "infinity/src/modules/units/unit-cargo.service.ts#DropCargoOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "idle" },
+    "resourceType": { "type": "string" },
+    "droppedAmount": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Quantity removed from unit cargo."
+    }
+  },
+  "required": ["unitId", "status", "resourceType", "droppedAmount"],
+  "additionalProperties": false
+}

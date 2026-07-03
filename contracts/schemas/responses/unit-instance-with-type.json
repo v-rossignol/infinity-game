@@ -12,7 +12,7 @@
     "location": { "type": "object" },
     "status": {
       "type": "string",
-      "enum": ["idle", "moving", "inactive", "active", "destroyed"]
+      "enum": ["idle", "moving", "inactive", "active", "destroyed", "extracting"]
     },
     "createdAt": { "type": "string", "format": "date-time" },
     "updatedAt": { "type": "string", "format": "date-time" },

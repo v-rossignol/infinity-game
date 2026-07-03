@@ -28,9 +28,10 @@
         "additionalProperties": false
       }
     },
-    "capabilities": { "type": "object" },
+    "capabilities": { "$ref": "unit-capabilities.json" },
     "description": { "type": ["string", "null"] },
     "metadata": { "type": "object" },
+    "recipe": { "$ref": "unit-recipe.json" },
     "createdAt": { "type": "string", "format": "date-time" },
     "updatedAt": { "type": "string", "format": "date-time" }
   },

@@ -1,0 +1,5 @@
+{
+  "jest.enable": false,
+  "vitest.ignoreWorkspace": true,
+  "vitest.configSearchPatternInclude": "packages/**/vitest.config.{ts,js,mjs,cjs,cts,mts}"
+}

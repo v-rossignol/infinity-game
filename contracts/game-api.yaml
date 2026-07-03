@@ -102,6 +102,75 @@ paths:
               schema:
                 $ref: schemas/responses/http-error.json
 
+  /players/me/units/{unitId}/buildable:
+    get:
+      tags: [Players, Units]
+      operationId: listBuildableUnitTypes
+      summary: List unit types the builder can construct
+      description: |
+        Returns catalog unit types the caller-owned builder may construct: the type has a
+        `recipe`, matches the builder `building` capability targets, and optionally matches
+        the target hex biome when `planetId`, `q`, and `r` are all provided.
+
+        Each entry includes `buildDurationMs` for this builder (`recipe.work / building.speed
+        × PLANET_BASE_BUILD_MS`). Returns an empty array when the builder has no building
+        capability.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: planetId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Required with `q` and `r` to filter by target hex biome.
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Target hex axial q — required with `planetId` and `r` for biome filter.
+        - name: r
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: Target hex axial r — required with `planetId` and `q` for biome filter.
+      responses:
+        '200':
+          description: Buildable unit types for this builder
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/buildable-unit-type-list.json
+        '400':
+          description: Partial hex query (`planetId`, `q`, `r` must be provided together)
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
   /players/me/units/{unitId}/move:
     post:
       tags: [Players, Units]
@@ -222,6 +291,318 @@ paths:
                 $ref: schemas/responses/http-error.json
         '422':
           description: Unit not on the specified planet or movement metadata invalid
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/extract:
+    post:
+      tags: [Players, Units]
+      operationId: extractUnitResources
+      summary: Start extracting a resource at the unit's current hex
+      description: |
+        Starts timed resource extraction for the caller-owned unit on the specified planet.
+        The unit must be `idle`, have extraction capability, and be located in a hex that
+        contains the requested resource type.
+
+        On success the unit's status becomes `extracting`. Every minute the server adds
+        `biome.quantity × extraction.speed` to cargo (clamped to capacity) and emits a
+        `UNIT_UPDATE` WebSocket event with updated cargo. Extraction stops automatically
+        when cargo is full, or via `stop-extraction`.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/extract-unit.json
+      responses:
+        '200':
+          description: Extract order accepted — unit is now extracting
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/extract-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on planet, cannot extract, resource absent, or cargo full
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/stop-extraction:
+    post:
+      tags: [Players, Units]
+      operationId: stopUnitExtraction
+      summary: Stop a unit that is currently extracting
+      description: |
+        Halts in-progress extraction for the caller-owned unit on the specified planet.
+        The unit must be `extracting`.
+
+        The server applies a partial tick yield from `lastTickAt`, adds it to cargo,
+        sets status to `idle`, and pushes a `UNIT_UPDATE` WebSocket event to the
+        `planetId` room with updated cargo.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/stop-unit.json
+      responses:
+        '200':
+          description: Stop extraction accepted — unit is now idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stop-extraction-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not extracting
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on the specified planet or extraction metadata invalid
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/build:
+    post:
+      tags: [Players, Units]
+      operationId: buildUnit
+      summary: Start building a unit at a chosen planet hex
+      description: |
+        Starts timed construction for the caller-owned builder unit on the specified planet.
+        The builder must be `idle`, have a `building` capability that allows the target type,
+        carry enough cargo for the target recipe, and the target hex biome must match the
+        target unit type `environments`.
+
+        Ingredients are deducted from builder cargo when the build starts. Canceling does not
+        refund resources. On success the builder status becomes `building`. When complete the
+        server creates the new unit instance and emits `UNIT_UPDATE` for both builder and built
+        unit on the planet room.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/build-unit.json
+      responses:
+        '200':
+          description: Build order accepted — builder is now building
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/build-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Builder is not idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Builder cannot build target, invalid biome, unknown recipe resource, or insufficient cargo
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/stop-build:
+    post:
+      tags: [Players, Units]
+      operationId: stopUnitBuild
+      summary: Stop a unit that is currently building
+      description: |
+        Halts in-progress construction for the caller-owned builder on the specified planet.
+        The unit must be `building`. Consumed recipe ingredients are not refunded. On success
+        the server emits a `UNIT_UPDATE` WebSocket event to the `planetId` room.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/stop-unit.json
+      responses:
+        '200':
+          description: Stop build accepted — builder is now idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stop-build-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not building
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on the specified planet or building metadata invalid
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/drop:
+    post:
+      tags: [Players, Units]
+      operationId: dropUnitCargo
+      summary: Drop a resource from unit cargo
+      description: |
+        Removes a quantity of a resource from the caller-owned unit cargo on the specified
+        planet. The unit must be `idle` (not moving or extracting) and carry at least the
+        requested amount of the resource.
+
+        Dropped resources are discarded (not placed on the hex). On success the server emits
+        a `UNIT_UPDATE` WebSocket event to the `planetId` room with updated cargo.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/drop-cargo.json
+      responses:
+        '200':
+          description: Drop accepted — cargo updated
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/drop-cargo-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is moving or extracting
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on planet, insufficient cargo, or invalid amount
           content:
             application/json:
               schema:

@@ -1,0 +1,16 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/extract-order-result.json",
+  "title": "ExtractOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/extract. The unit status is now extracting.",
+  "x-infinity-source": "infinity/src/modules/units/unit-extraction.service.ts#ExtractOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "extracting" },
+    "resourceType": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["unitId", "status", "resourceType", "startedAt"],
+  "additionalProperties": false
+}

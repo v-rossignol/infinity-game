@@ -208,10 +208,10 @@ channels:
   unitUpdate:
     address: UNIT_UPDATE
     description: |
-      Server push when a unit finishes or stops movement on a planet surface.
-      Emitted after natural arrival (`setTimeout` from move order) or when a stop order
-      resolves the unit's interpolated position. There is no client-emitted counterpart.
-      Delivered to all clients in room `{planetId}`.
+      Server push when a unit finishes or stops movement, when extraction cargo/status
+      changes on a planet surface, or when cargo is dropped. Emitted after natural arrival,
+      stop-move, extraction tick, stop-extraction, or cargo drop. Delivered to all clients
+      in room `{planetId}`.
     messages:
       unitUpdate:
         $ref: '#/components/messages/UnitUpdate'

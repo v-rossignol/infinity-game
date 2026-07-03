@@ -77,6 +77,12 @@ Infinity/                          # Monorepo root (this file)
 │
 ├── galaxy/                        # Galaxy view client (planned — directory not created yet)
 │
+├── packages/                      # Shared npm workspace packages (see Shared packages section)
+│   ├── shared-ui/                 # React components, hooks, theme — @infinity/shared-ui
+│   ├── shared-types/              # TypeScript interfaces shared by all clients — @infinity/shared-types
+│   ├── shared-utils/              # Pure utility functions — @infinity/shared-utils
+│   └── shared-config/             # Constants, colors, settings — @infinity/shared-config
+│
 └── deployment/                    # Run scripts and config (dev only for now)
     ├── start-caddy.bat            # Start Caddy reverse proxy
     └── dev/                       # Local dev: Docker, Caddy config, helper scripts
@@ -97,6 +103,11 @@ Infinity/                          # Monorepo root (this file)
 | `terra-view/` | Planet client only | Served at `/terra-view/`; dev port `3000`. |
 | `solaris/` | Solar system client only | Served at `/solaris/`; dev port `3003` *(Caddy route not wired yet)*. |
 | `galaxy/` | Galaxy client only | Planned; served at `/galaxy/`. |
+| `packages/` | All clients | npm workspace packages — import as `@infinity/*`. Build each with `npm run build` inside the package directory. |
+| `packages/shared-ui/` | All React clients | Presentation-only React components and hooks. React/React-DOM are peer dependencies — do not add them to `dependencies`. |
+| `packages/shared-types/` | All clients + server | TypeScript interfaces for domain objects and events. No runtime dependencies. |
+| `packages/shared-utils/` | All clients | Pure utility functions (formatters, math, random, helpers). No framework dependencies. |
+| `packages/shared-config/` | All clients + server | Shared constants, color palette, timing values, z-index scale. No runtime dependencies. |
 | `deployment/` | Run / ops (dev) | Scripts and config to start databases, reverse proxy, and (later) full stack. Production out of scope for now. |
 
 ---
@@ -128,6 +139,7 @@ When working inside a sub-project, read its dedicated `AGENTS.md` first — it c
 
 | Sub-project | Agent guide |
 |-------------|-------------|
+| Shared packages | [packages/AGENTS.md](packages/AGENTS.md) |
 | Deployment | [deployment/AGENTS.md](deployment/AGENTS.md) |
 | Infinity Server | [infinity/AGENTS.md](infinity/AGENTS.md) |
 | Stellar Gate | [stellar-gate/AGENTS.md](stellar-gate/AGENTS.md) |
@@ -146,21 +158,24 @@ Index for human navigation and explicit user references — **not** for agent au
 | Game overview | [documentation/infinity.md](documentation/infinity.md) |
 | Game rules (draft) | [contracts/game-rules.md](contracts/game-rules.md) |
 | Terrain resources (draft) | [contracts/resources.md](contracts/resources.md) |
-| Three game clients (analysis) | [documentation/architecture/3clients-analysis.md](documentation/architecture/3clients-analysis.md) |
-| Server setup (planning) | [documentation/architecture/server-setup.md](documentation/architecture/server-setup.md) |
 | Server API (source of truth) | [contracts/](contracts/) — OpenAPI, AsyncAPI, JSON Schemas |
 | DTO schemas (JSON Schema) | [contracts/schemas/](contracts/schemas/) |
 | OpenAPI (REST) | [contracts/auth-api.yaml](contracts/auth-api.yaml) · [admin-api.yaml](contracts/admin-api.yaml) · [game-api.yaml](contracts/game-api.yaml) |
 | AsyncAPI (Socket.IO) | [contracts/asyncapi.yaml](contracts/asyncapi.yaml) |
-| Stellar Gate API contract | [stellar-gate/documentation/infinity/stellar-gate-api.md](stellar-gate/documentation/infinity/stellar-gate-api.md) |
-| Domain objects (cube, star, planet…) | [infinity/documentation/objects/](infinity/documentation/objects/) |
-| Terra View setup | [documentation/terra-view/terra-view-setup.md](documentation/terra-view/terra-view-setup.md) |
 | Local dev runbook | [deployment/dev/README.md](deployment/dev/README.md) |
 | Deferred fixes (cross-project) | [documentation/TO-BE-FIXED.md](documentation/TO-BE-FIXED.md) |
 
 **Language:** English is the primary language for code, agent guides, and new documentation. Several existing docs are in French. When you rely on or update a French doc, ask the user whether it should be translated to English.
 
 Documentation conventions: [rules/documents.md](rules/documents.md). Code, paths, and API identifiers are always in English.
+
+---
+
+## Shared packages
+
+All packages live under `packages/` and are managed as an **npm workspace** (root `package.json`). Each is built with `tsup` and imported under the `@infinity` scope.
+
+Full details — exports, constraints, commands, tests, and adoption status — are in **[packages/AGENTS.md](packages/AGENTS.md)**.
 
 ---
 
