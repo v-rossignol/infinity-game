@@ -1,0 +1,22 @@
+﻿{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/extract-unit.json",
+  "title": "ExtractUnit",
+  "description": "Request body for POST /players/me/units/{unitId}/extract. Starts extraction of a resource present in the unit current hex biome.",
+  "x-infinity-source": "infinity/src/modules/units/dto/extract-unit.dto.ts#ExtractUnitDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet the unit currently occupies. Must match the unit stored planetId."
+    },
+    "resourceType": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Terrain resource id to extract (e.g. iron-ore). Must be present in the unit current hex biome and allowed by the unit type extraction capability."
+    }
+  },
+  "required": ["planetId", "resourceType"],
+  "additionalProperties": false
+}

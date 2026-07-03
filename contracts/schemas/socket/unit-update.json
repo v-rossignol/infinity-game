@@ -2,18 +2,23 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infinity/contracts/schemas/socket/unit-update.json",
   "title": "UnitUpdate",
-  "description": "UNIT_UPDATE room broadcast payload. Emitted to the planet room when a unit arrives or is stopped mid-move.",
+  "description": "UNIT_UPDATE room broadcast payload. Emitted to the planet room when a unit arrives, stops moving, or extraction cargo/status changes.",
   "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleUnitMovementArrived",
   "type": "object",
   "properties": {
     "unitId": { "type": "string", "format": "uuid" },
     "status": {
       "type": "string",
-      "enum": ["idle", "moving", "inactive", "active", "destroyed"]
+      "enum": ["idle", "moving", "inactive", "active", "destroyed", "extracting"]
     },
     "location": {
       "type": "object",
       "description": "Updated unit location (planet depth: cube, starSystem, planet with hex_coords and position)."
+    },
+    "cargo": {
+      "type": "object",
+      "description": "Present on extraction tick/stop events. Map of resource id to quantity in unit cargo.",
+      "additionalProperties": { "type": "number", "minimum": 0 }
     }
   },
   "required": ["unitId", "status", "location"],

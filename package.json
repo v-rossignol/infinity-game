@@ -3,6 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "packages/*"
-  ]
+    "packages/*",
+    "infinity",
+    "terra-view",
+    "solaris"
+  ],
+  "scripts": {
+    "test:packages": "npm run test --workspace=@infinity/shared-ui --workspace=@infinity/shared-utils"
+  }
 }

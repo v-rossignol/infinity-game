@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/stop-build-order-result.json",
+  "title": "StopBuildOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/stop-build. The builder status is now idle; consumed resources are not refunded.",
+  "x-infinity-source": "infinity/src/modules/units/unit-building.service.ts#StopBuildOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "idle" }
+  },
+  "required": ["unitId", "status"],
+  "additionalProperties": false
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/unit-recipe.json",
+  "title": "UnitRecipe",
+  "description": "Resources and work required to build a unit type.",
+  "x-infinity-source": "infinity/src/shared/interfaces/unit-type.interface.ts#UnitRecipe",
+  "type": "object",
+  "properties": {
+    "ingredients": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "number",
+        "minimum": 0
+      },
+      "description": "Terrain resource id to quantity map. May be empty for time-only builds."
+    },
+    "work": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "description": "Arbitrary work units controlling build duration."
+    }
+  },
+  "required": ["ingredients", "work"],
+  "additionalProperties": false
+}

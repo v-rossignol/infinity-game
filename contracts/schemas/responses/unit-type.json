@@ -3,7 +3,7 @@
   "$id": "https://infinity/contracts/schemas/responses/unit-type.json",
   "title": "UnitType",
   "description": "Unit type catalog definition embedded in unit instance responses.",
-  "x-infinity-source": "infinity/src/shared/interfaces/unit-type.interface.ts#UnitTypeDefinition",
+  "x-infinity-source": "packages/shared-types/src/Unit.ts#UnitTypeDefinition",
   "type": "object",
   "properties": {
     "id": { "type": "string" },
@@ -31,9 +31,10 @@
         "additionalProperties": false
       }
     },
-    "capabilities": { "type": "object" },
+    "capabilities": { "$ref": "unit-capabilities.json" },
     "description": { "type": ["string", "null"] },
-    "metadata": { "type": "object" }
+    "metadata": { "type": "object" },
+    "recipe": { "$ref": "unit-recipe.json" }
   },
   "required": [
     "id",

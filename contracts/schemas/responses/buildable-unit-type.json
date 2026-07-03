@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/buildable-unit-type.json",
+  "title": "BuildableUnitType",
+  "description": "Unit type the builder may construct, including recipe and estimated build duration.",
+  "x-infinity-source": "packages/shared-types/src/Unit.ts#BuildableUnitType",
+  "allOf": [
+    { "$ref": "unit-type.json" },
+    {
+      "type": "object",
+      "properties": {
+        "buildDurationMs": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Estimated build time in ms for this builder (recipe.work / building.speed × PLANET_BASE_BUILD_MS)."
+        }
+      },
+      "required": ["buildDurationMs"]
+    }
+  ]
+}

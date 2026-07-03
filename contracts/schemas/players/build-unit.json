@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/build-unit.json",
+  "title": "BuildUnit",
+  "description": "Request body for POST /players/me/units/{unitId}/build. Starts construction of a target unit type at the chosen planet hex.",
+  "x-infinity-source": "infinity/src/modules/units/dto/build-unit.dto.ts#BuildUnitDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet where the builder unit currently operates."
+    },
+    "targetTypeId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Catalog id of the unit type to build."
+    },
+    "targetHex": {
+      "type": "object",
+      "properties": {
+        "q": { "type": "integer" },
+        "r": { "type": "integer" }
+      },
+      "required": ["q", "r"],
+      "additionalProperties": false,
+      "description": "Axial coordinates where the new unit will be placed."
+    },
+    "targetPosition": {
+      "type": "object",
+      "properties": {
+        "x": { "type": "number", "minimum": 0, "maximum": 1 },
+        "y": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["x", "y"],
+      "additionalProperties": false,
+      "description": "Optional normalized position within the target hex (defaults to center)."
+    }
+  },
+  "required": ["planetId", "targetTypeId", "targetHex"],
+  "additionalProperties": false
+}

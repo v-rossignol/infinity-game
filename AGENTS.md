@@ -139,6 +139,7 @@ When working inside a sub-project, read its dedicated `AGENTS.md` first — it c
 
 | Sub-project | Agent guide |
 |-------------|-------------|
+| Shared packages | [packages/AGENTS.md](packages/AGENTS.md) |
 | Deployment | [deployment/AGENTS.md](deployment/AGENTS.md) |
 | Infinity Server | [infinity/AGENTS.md](infinity/AGENTS.md) |
 | Stellar Gate | [stellar-gate/AGENTS.md](stellar-gate/AGENTS.md) |
@@ -172,31 +173,9 @@ Documentation conventions: [rules/documents.md](rules/documents.md). Code, paths
 
 ## Shared packages
 
-All packages live under `packages/` and are managed as an **npm workspace** (root `package.json`). Each is built with `tsup` and published under the `@infinity` scope.
+All packages live under `packages/` and are managed as an **npm workspace** (root `package.json`). Each is built with `tsup` and imported under the `@infinity` scope.
 
-| Package | Name | Contents |
-|---------|------|----------|
-| [`packages/shared-ui/`](packages/shared-ui/) | `@infinity/shared-ui` | React components (`Button`, `Spinner`, `HealthBar`, `PlayerAvatar`), hooks (`useDebounce`, `useKeyboard`, `useResize`), theme tokens |
-| [`packages/shared-types/`](packages/shared-types/) | `@infinity/shared-types` | TypeScript interfaces: `Player`, `Item`, `InventorySlot`, `Packet`, `GameEvent`, `GameEventName` |
-| [`packages/shared-utils/`](packages/shared-utils/) | `@infinity/shared-utils` | `formatters/`, `math/`, `random/`, `helpers/` — pure functions, no side effects |
-| [`packages/shared-config/`](packages/shared-config/) | `@infinity/shared-config` | `colors`, `SOCKET_EVENTS`, `PAGINATION`, `XP_THRESHOLDS`, `timings`, `breakpoints`, `zIndex` |
-
-**Import pattern in any client:**
-
-```tsx
-import { Button, HealthBar }  from "@infinity/shared-ui";
-import { Player, GameEvent }  from "@infinity/shared-types";
-import { clamp, formatNumber } from "@infinity/shared-utils";
-import { colors, SOCKET_EVENTS } from "@infinity/shared-config";
-```
-
-**Key constraints:**
-- `shared-ui` must stay presentation-only — no routing, no Zustand, no API calls.
-- `shared-types` and `shared-config` must have zero runtime dependencies.
-- `shared-utils` must have zero framework dependencies.
-- Build before consuming in an app: `cd packages/<name> && npm run build`.
-
-**Architecture reference:** [documentation/architecture/share-ui.md](documentation/architecture/share-ui.md)
+Full details — exports, constraints, commands, tests, and adoption status — are in **[packages/AGENTS.md](packages/AGENTS.md)**.
 
 ---
 

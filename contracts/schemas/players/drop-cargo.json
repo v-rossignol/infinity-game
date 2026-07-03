@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/drop-cargo.json",
+  "title": "DropCargo",
+  "description": "Request body for POST /players/me/units/{unitId}/drop. Removes a quantity of a resource from the unit cargo at its current planet hex.",
+  "x-infinity-source": "infinity/src/modules/units/dto/drop-cargo.dto.ts#DropCargoDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet the unit currently occupies. Must match the unit stored planetId."
+    },
+    "resourceType": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Terrain resource id to drop from cargo (e.g. iron-ore)."
+    },
+    "amount": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Quantity to remove from cargo."
+    }
+  },
+  "required": ["planetId", "resourceType", "amount"],
+  "additionalProperties": false
+}

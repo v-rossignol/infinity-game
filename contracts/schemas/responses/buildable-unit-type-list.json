@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/buildable-unit-type-list.json",
+  "title": "BuildableUnitTypeList",
+  "description": "Response for GET /players/me/units/{unitId}/buildable.",
+  "x-infinity-source": "infinity/src/modules/units/unit-building.service.ts#listBuildableTypes",
+  "type": "array",
+  "items": { "$ref": "buildable-unit-type.json" }
+}

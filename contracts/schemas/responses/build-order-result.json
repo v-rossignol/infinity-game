@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/build-order-result.json",
+  "title": "BuildOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/build. The builder status is now building.",
+  "x-infinity-source": "infinity/src/modules/units/unit-building.service.ts#BuildOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "building" },
+    "targetTypeId": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["unitId", "status", "targetTypeId", "startedAt", "completedAt"],
+  "additionalProperties": false
+}
