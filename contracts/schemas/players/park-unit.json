@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/park-unit.json",
+  "title": "ParkUnit",
+  "description": "Request body for POST /players/me/units/{unitId}/park. Parks a caller-owned vehicle in a nearby garage building on the same planet.",
+  "x-infinity-source": "infinity/src/modules/units/dto/park-unit.dto.ts#ParkUnitDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet the vehicle currently occupies. Must match the unit stored planetId."
+    },
+    "garageUnitId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Caller-owned garage building unit instance id."
+    }
+  },
+  "required": ["planetId", "garageUnitId"],
+  "additionalProperties": false
+}

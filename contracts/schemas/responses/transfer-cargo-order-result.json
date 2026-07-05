@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/transfer-cargo-order-result.json",
+  "title": "TransferCargoOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/transfer-to. Cargo has been moved; UNIT_UPDATE WebSocket events carry updated cargo for both units.",
+  "x-infinity-source": "infinity/src/modules/units/unit-cargo.service.ts#TransferCargoOrderResult",
+  "type": "object",
+  "properties": {
+    "sourceUnitId": { "type": "string", "format": "uuid" },
+    "targetUnitId": { "type": "string", "format": "uuid" },
+    "transferred": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "../shared/cargo-resource.json"
+      }
+    }
+  },
+  "required": ["sourceUnitId", "targetUnitId", "transferred"],
+  "additionalProperties": false
+}

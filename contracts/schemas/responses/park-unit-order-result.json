@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/park-unit-order-result.json",
+  "title": "ParkUnitOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/park. Vehicle is inactive; a UNIT_UPDATE WebSocket event carries status and parking metadata.",
+  "x-infinity-source": "infinity/src/modules/units/unit-parking.service.ts#ParkOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "inactive" },
+    "garageUnitId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Garage unit instance that now stores the vehicle."
+    }
+  },
+  "required": ["unitId", "status", "garageUnitId"],
+  "additionalProperties": false
+}

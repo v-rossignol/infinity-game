@@ -11,17 +11,11 @@
       "minLength": 1,
       "description": "Planet the unit currently occupies. Must match the unit stored planetId."
     },
-    "resourceType": {
-      "type": "string",
-      "minLength": 1,
-      "description": "Terrain resource id to drop from cargo (e.g. iron-ore)."
-    },
-    "amount": {
-      "type": "number",
-      "minimum": 1,
-      "description": "Quantity to remove from cargo."
+    "resource": {
+      "$ref": "../shared/cargo-resource.json",
+      "description": "Resource to remove from unit cargo."
     }
   },
-  "required": ["planetId", "resourceType", "amount"],
+  "required": ["planetId", "resource"],
   "additionalProperties": false
 }

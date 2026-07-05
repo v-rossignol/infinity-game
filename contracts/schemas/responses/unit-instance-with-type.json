@@ -17,6 +17,24 @@
     "createdAt": { "type": "string", "format": "date-time" },
     "updatedAt": { "type": "string", "format": "date-time" },
     "metadata": { "type": "object" },
+    "cargo": {
+      "type": "object",
+      "additionalProperties": { "type": "number" },
+      "description": "Resource id → quantity carried by the unit."
+    },
+    "garage": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "format": "uuid" },
+          "typeId": { "type": "string" }
+        },
+        "required": ["id", "typeId"],
+        "additionalProperties": false
+      },
+      "description": "Parked unit instance id → { id, typeId } on garage buildings."
+    },
     "type": {
       "$ref": "unit-type.json"
     }
@@ -30,6 +48,8 @@
     "createdAt",
     "updatedAt",
     "metadata",
+    "cargo",
+    "garage",
     "type"
   ],
   "additionalProperties": false

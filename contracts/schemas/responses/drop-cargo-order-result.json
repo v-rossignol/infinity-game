@@ -8,13 +8,11 @@
   "properties": {
     "unitId": { "type": "string", "format": "uuid" },
     "status": { "type": "string", "const": "idle" },
-    "resourceType": { "type": "string" },
-    "droppedAmount": {
-      "type": "number",
-      "minimum": 1,
-      "description": "Quantity removed from unit cargo."
+    "resource": {
+      "$ref": "../shared/cargo-resource.json",
+      "description": "Resource removed from unit cargo."
     }
   },
-  "required": ["unitId", "status", "resourceType", "droppedAmount"],
+  "required": ["unitId", "status", "resource"],
   "additionalProperties": false
 }

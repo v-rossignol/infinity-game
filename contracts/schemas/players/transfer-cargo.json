@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/transfer-cargo.json",
+  "title": "TransferCargo",
+  "description": "Request body for POST /players/me/units/{unitId}/transfer-to. Transfers cargo from the path unit to a parked partner unit on the same planet.",
+  "x-infinity-source": "infinity/src/modules/units/dto/transfer-cargo.dto.ts#TransferCargoDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet both units currently occupy. Must match each unit stored planetId."
+    },
+    "targetUnitId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Destination unit instance id."
+    },
+    "resources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "../shared/cargo-resource.json"
+      },
+      "description": "Resources to move from the source unit to the target unit."
+    }
+  },
+  "required": ["planetId", "targetUnitId", "resources"],
+  "additionalProperties": false
+}

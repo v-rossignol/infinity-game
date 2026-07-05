@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/unpark-unit-order-result.json",
+  "title": "UnparkUnitOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/unpark. Vehicle is idle again; a UNIT_UPDATE WebSocket event carries cleared parking metadata.",
+  "x-infinity-source": "infinity/src/modules/units/unit-parking.service.ts#UnparkOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "idle" }
+  },
+  "required": ["unitId", "status"],
+  "additionalProperties": false
+}

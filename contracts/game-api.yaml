@@ -608,6 +608,196 @@ paths:
               schema:
                 $ref: schemas/responses/http-error.json
 
+  /players/me/units/{unitId}/transfer-to:
+    post:
+      tags: [Players, Units]
+      operationId: transferUnitCargo
+      summary: Transfer cargo between parked units
+      description: |
+        Moves resources from the caller-owned source unit (`unitId`) to a caller-owned target
+        unit on the same planet. Transfer is allowed only when one unit is parked in the other's
+        garage (vehicle `metadata.parking.garageUnitId` matches the building, or the reverse).
+
+        Both unit types must have cargo capability. The request is all-or-nothing: if any
+        resource quantity exceeds source cargo or target remaining capacity, nothing is moved.
+        Parked (`inactive`) vehicles may send or receive cargo; units that are `moving` or
+        `building` are rejected.
+
+        On success the server emits `UNIT_UPDATE` WebSocket events to the `planetId` room for
+        both the source and target units with updated `cargo`.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/transfer-cargo.json
+      responses:
+        '200':
+          description: Transfer accepted — cargo updated on both units
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/transfer-cargo-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Source or target unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Source or target unit is moving or building
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Units not parked together, not on planet, insufficient cargo, or capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/park:
+    post:
+      tags: [Players, Units]
+      operationId: parkUnit
+      summary: Park a vehicle in a nearby garage
+      description: |
+        Parks a caller-owned vehicle in a caller-owned garage building on the same planet.
+        The vehicle must be `idle`. The garage must have garage capability, accept the
+        vehicle size, have free space, and be within `PLANET_GARAGE_RANGE_HEX` surface
+        distance. On success the vehicle status becomes `inactive`,
+        `metadata.parking.garageUnitId` is set, and the garage building's `garage` field
+        records `{ id, typeId }` for the parked vehicle. The server emits `UNIT_UPDATE`
+        WebSocket events to the `planetId` room for both the vehicle and the garage unit.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/park-unit.json
+      responses:
+        '200':
+          description: Park accepted — vehicle inactive
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/park-unit-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Vehicle or garage not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Vehicle, garage, planet, or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Vehicle or garage is not idle, or vehicle already parked
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Not a vehicle, no garage capability, out of range, size unsupported, or garage full
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/unpark:
+    post:
+      tags: [Players, Units]
+      operationId: unparkUnit
+      summary: Unpark a vehicle from a garage
+      description: |
+        Restores a parked (`inactive`) caller-owned vehicle to `idle` on the specified planet.
+        Clears `metadata.parking` and removes the vehicle from the garage building's `garage`
+        field. The server emits `UNIT_UPDATE` WebSocket events to the `planetId` room for
+        both the vehicle and the garage unit.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/stop-unit.json
+      responses:
+        '200':
+          description: Unpark accepted — vehicle idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/unpark-unit-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not parked
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on planet or parking metadata invalid
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
   /players/{userId}:
     get:
       tags: [Players]
