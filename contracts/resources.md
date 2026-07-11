@@ -1,10 +1,15 @@
 # Resources
 
 ```yaml
-date: 2026-06-20
+date: 2026-07-11
 author: Roro LeSage
 model: Composer
 sources:
+  - okf/resources/index.md
+  - okf/resources/permanent-resources.md
+  - okf/resources/occasional-resources.md
+  - okf/resources/transformed-resources.md
+  - packages/shared-config/src/terrain-resources.ts
   - infinity/src/shared/constants/terrain-resources.constants.ts
   - infinity/src/shared/utils/hex-resources.ts
   - infinity/src/modules/resources/resources.service.ts
@@ -12,13 +17,18 @@ sources:
   - contracts/schemas/responses/planet-hex-resources.json
   - contracts/game-api.yaml
   - contracts/game-rules.md
+  - documentation/transformations/ideas.md
 ```
 
 ## Overview
 
-Draft catalog of **terrain resources** on planetary hex cells. **Permanent resources** are implemented in `PERMANENT_TERRAIN_RESOURCES` and returned by `GET /infinity/resources/planet/{planetId}/hex/{q}/{r}`. **Occasional resources** are defined here only — procedural placement is **planned**, not implemented.
+Draft catalog of **terrain resources** on planetary hex cells. Canonical constants live in `packages/shared-config/src/terrain-resources.ts` (`PERMANENT_TERRAIN_RESOURCES`, `OCCASIONAL_TERRAIN_RESOURCES`); the server re-exports them from `infinity/src/shared/constants/terrain-resources.constants.ts`.
 
-Each resource has a stable **`id`** (kebab-case) for contracts, constants, and persistence. The **Name** column is the human-readable label.
+**Permanent resources** are resolved at request time from the hex biome and returned by `GET /infinity/resources/planet/{planetId}/hex/{q}/{r}`. Planet surface generation stores `resources: []` on every hex; the endpoint does not read persisted hex resources.
+
+**Occasional resources** are defined in `OCCASIONAL_TERRAIN_RESOURCES` alongside permanents. Procedural placement and API exposure are **planned**, not implemented.
+
+Each resource has a stable **`id`** (kebab-case) for contracts, constants, and persistence. The **Name** column is the human-readable label. The hex endpoint maps `id` → `type`, `quantity` → `abundance`, and `rarity` from the shared resource catalog (`common` for permanent terrain resources today).
 
 ---
 
@@ -29,9 +39,9 @@ Summary matrix of permanent and occasional resources by **terrain** (`HexBiome`)
 | Terrain | Permanent resources | Occasional resources |
 | ------- | ------------------- | -------------------- |
 | `plain` | Food, Fresh water | Rare earths, Uranium |
-| `forest` | Wood, Food | Bauxite deposits |
+| `forest` | Wood, Food | Bauxite |
 | `mountain` | Stone, Iron ore, Copper ore, Coal | Gold, Silver |
-| `desert` | Silica, Alkaline minerals | Crude oil, Nitre, Brine lithium |
+| `desert` | Silica, Alkaline minerals | Oil, Nitre, Lithium |
 | `ocean` | Food, Salt water | Polymetallic nodules, Oil |
 | `ice` | Ice, Cryogenic materials | Tritium, Methane ice |
 | `volcanic` | Obsidian, Sulfur, Basalt | Industrial diamonds |
@@ -40,7 +50,7 @@ Summary matrix of permanent and occasional resources by **terrain** (`HexBiome`)
 
 ## Permanent resources
 
-Always present on every hex of matching terrain. One row per terrain–resource pair. Quantities match `PERMANENT_TERRAIN_RESOURCES` in code.
+Always present on every hex of matching terrain. One row per terrain–resource pair. Quantities match `PERMANENT_TERRAIN_RESOURCES` in `packages/shared-config/src/terrain-resources.ts`.
 
 | Id | Name | Terrain | Quantity |
 | --- | --- | --- | --- |
@@ -66,42 +76,46 @@ Always present on every hex of matching terrain. One row per terrain–resource 
 
 ## Occasional resources
 
-**Planned** — present only on some hexagons of matching terrain. Not yet wired in server generation or constants.
+**Planned** — present only on some hexagons of matching terrain. Ids and quantities match [okf/resources/occasional-resources.md](../okf/resources/occasional-resources.md). Not yet wired in surface generation or the hex resources endpoint.
 
 | Id | Name | Terrains | Quantity |
 | --- | --- | --- | --- |
-| `rare-earths` | Rare earths | `plain` | 100 |
-| `uranium` | Uranium | `plain` | 100 |
-| `bauxite` | Bauxite deposits | `forest` | 100 |
-| `gold` | Gold | `mountain` | 100 |
-| `silver` | Silver | `mountain` | 100 |
-| `crude-oil` | Crude oil | `desert`, `ocean` | 100 |
-| `nitre` | Nitre | `desert` | 100 |
-| `brine-lithium` | Brine lithium | `desert` | 100 |
-| `polymetallic-nodules` | Polymetallic nodules | `ocean` | 100 |
-| `tritium` | Tritium | `ice` | 100 |
-| `methane-ice` | Methane ice | `ice` | 100 |
-| `industrial-diamonds` | Industrial diamonds | `volcanic` | 100 |
+| `rare-earths` | Rare earths | `plain` | 5 |
+| `uranium` | Uranium | `plain` | 2 |
+| `bauxite` | Bauxite | `forest` | 7 |
+| `gold` | Gold | `mountain` | 1 |
+| `silver` | Silver | `mountain` | 2 |
+| `oil` | Oil | `desert`, `ocean` | 10 |
+| `nitre` | Nitre | `desert` | 5 |
+| `lithium` | Lithium | `desert` | 5 |
+| `polymetallic-nodules` | Polymetallic nodules | `ocean` | 10 |
+| `tritium` | Tritium | `ice` | 1 |
+| `methane-ice` | Methane ice | `ice` | 2 |
+| `industrial-diamonds` | Industrial diamonds | `volcanic` | 2 |
 
 Notes:
 
-- **Crude oil** — listed as *Oil* on `ocean` terrain in the summary matrix; both refer to the same resource (`crude-oil`).
 - **Ids** — stable identifiers for contracts, constants, and persistence; display names stay human-readable in the **Name** column.
 
 ---
 
-## Related endpoints
+## Transformed resources (planned)
 
-| Method | Path | Auth | Behavior |
-| ------ | ---- | ---- | -------- |
-| GET | `/infinity/resources/planet/{planetId}/hex/{q}/{r}` | Public | Returns permanent terrain resources for the hex at axial coordinates `(q, r)`. |
-| GET | `/infinity/resources/planet/{planetId}` | Public | Lists harvestable resource nodes from the `resources` MongoDB collection (may be empty). |
+**Planned** — products from resource transformations; not harvested from terrain. Recipes are draft ideas in `documentation/transformations/ideas.md`. Only outputs whose inputs are **permanent or occasional** terrain resources are listed here (intermediate ingots and alloys that require other transformed outputs are omitted for now).
 
-See [game-api.yaml](game-api.yaml) and [planet-hex-resources.json](schemas/responses/planet-hex-resources.json) for response shapes.
+| Id | Name | Type | Inputs | Suggested quantity | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `copper-ingot` | Copper ingot | Simple transformation | `copper-ore` (10) + `coal` (3) | 7 | Intermediate step for alloys. |
+| `iron-ingot` | Iron ingot | Simple transformation | `iron-ore` (10) + `coal` (5) | 8 | Intermediate step for alloys. |
+| `gunpowder` | Gunpowder* | Synthesis | `coal` (5) + `sulfur` (5) + `nitre` | 3 | `nitre` is an occasional desert resource. |
+
+\\* Requires at least one **occasional** terrain resource as input.
 
 ---
 
 ## Related documents
 
+- [okf/resources/index.md](../okf/resources/index.md) — OKF resources domain (navigation and category docs)
 - [Planet](../infinity/documentation/objects/planet.md) — hex surface, biomes, and generation
 - [game-rules.md](game-rules.md) — gameplay rules (resources harvesting planned)
+- [transformations/ideas.md](../documentation/transformations/ideas.md) — transformation recipes (draft)

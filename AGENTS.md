@@ -49,6 +49,9 @@ Infinity/                          # Monorepo root (this file)
 │   ├── openapi-shared.yaml        # Shared OpenAPI components
 │   ├── asyncapi.yaml              # Socket.IO events
 │   └── schemas/                   # JSON Schema DTOs and payloads
+├── okf/                           # OKF (Organized Knowledge Framework) — structured knowledge tree
+│   ├── AGENTS.md                  # OKF-specific agent guide
+│   └── reference/                 # OKF specification and conventions
 ├── documentation/                 # Working directory — user-owned docs; agents do not read unless referenced
 │   ├── infinity.md                # Canonical game + components overview
 │   ├── architecture/              # High-level analysis (3 clients, server setup)
@@ -97,6 +100,7 @@ Infinity/                          # Monorepo root (this file)
 |------|-------|-------|
 | `documentation/` | Whole project | **Working directory** — do not read or search files here unless the user explicitly references a path (e.g. `@documentation/...`). Same rule applies to every sub-project `documentation/` folder. Use `contracts/` and source code for implementation context. |
 | `contracts/` | Whole project | OpenAPI + AsyncAPI + JSON Schema — [contracts/](contracts/) · [auth-api.yaml](contracts/auth-api.yaml) · [admin-api.yaml](contracts/admin-api.yaml) · [game-api.yaml](contracts/game-api.yaml) · [asyncapi.yaml](contracts/asyncapi.yaml) · [schemas/](contracts/schemas/) |
+| `okf/` | Whole project | **OKF (Organized Knowledge Framework)** — hierarchical knowledge tree with `index.md` / `log.md` per domain. Read [okf/AGENTS.md](okf/AGENTS.md) before editing. |
 | `infinity/` | Backend only | REST under `/infinity/*`, Socket.IO gateway, polyglot data layer. |
 | `stellar-gate/` | Auth client only | Served at `/stellar-gate/`; dev port `3001`. |
 | `cosmos-governance/` | Admin client only | Served at `/cosmos-governance/`; dev port `3002`. |
@@ -139,6 +143,7 @@ When working inside a sub-project, read its dedicated `AGENTS.md` first — it c
 
 | Sub-project | Agent guide |
 |-------------|-------------|
+| OKF | [okf/AGENTS.md](okf/AGENTS.md) |
 | Shared packages | [packages/AGENTS.md](packages/AGENTS.md) |
 | Deployment | [deployment/AGENTS.md](deployment/AGENTS.md) |
 | Infinity Server | [infinity/AGENTS.md](infinity/AGENTS.md) |
@@ -157,7 +162,8 @@ Index for human navigation and explicit user references — **not** for agent au
 |-------|----------|
 | Game overview | [documentation/infinity.md](documentation/infinity.md) |
 | Game rules (draft) | [contracts/game-rules.md](contracts/game-rules.md) |
-| Terrain resources (draft) | [contracts/resources.md](contracts/resources.md) |
+| Terrain resources | [okf/resources/index.md](okf/resources/index.md) |
+| Unit catalog (draft) | [contracts/units.md](contracts/units.md) |
 | Server API (source of truth) | [contracts/](contracts/) — OpenAPI, AsyncAPI, JSON Schemas |
 | DTO schemas (JSON Schema) | [contracts/schemas/](contracts/schemas/) |
 | OpenAPI (REST) | [contracts/auth-api.yaml](contracts/auth-api.yaml) · [admin-api.yaml](contracts/admin-api.yaml) · [game-api.yaml](contracts/game-api.yaml) |
@@ -181,8 +187,8 @@ Full details — exports, constraints, commands, tests, and adoption status — 
 
 ## Agent workflow
 
-1. **Identify scope** — backend (`infinity/`), a specific client, or run config (`deployment/`). Treat every `documentation/` directory (root and sub-project) as out of scope for reading unless the user explicitly references a file or asks you to edit docs there.
-2. **Open the sub-project `AGENTS.md`** when editing code under that directory.
+1. **Identify scope** — backend (`infinity/`), a specific client, run config (`deployment/`), or knowledge tree (`okf/`). Treat every `documentation/` directory (root and sub-project) as out of scope for reading unless the user explicitly references a file or asks you to edit docs there.
+2. **Open the sub-project `AGENTS.md`** when editing code or OKF content under that directory.
 3. **Keep changes minimal** — match existing patterns in the touched sub-project; do not refactor across repos unless asked.
 4. **Do not read `documentation/` proactively** — no browsing, searching, or following links into any `documentation/` directory (root, sub-project, or cross-project) unless the user gives an explicit path (e.g. `@documentation/infinity.md`, `@infinity/documentation/objects/cube.md`). Links elsewhere in this file are pointers for the user, not permission to read.
 5. **Do not create git commits** unless the user explicitly requests it.

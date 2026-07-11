@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/shared/resource-rarity.json",
+  "title": "ResourceRarity",
+  "description": "Resource rarity tier. Matches RESOURCE_RARITIES in @infinity/shared-config.",
+  "x-infinity-source": "packages/shared-config/src/constants.ts#RESOURCE_RARITIES",
+  "type": "string",
+  "enum": ["common", "occasional", "transformed", "rare", "epic", "legendary"]
+}

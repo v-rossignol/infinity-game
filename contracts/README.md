@@ -15,14 +15,14 @@ Cross-project API contracts for the Infinity Server.
 | [`openapi-shared.yaml`](openapi-shared.yaml) | Shared security schemes, parameters, and error responses |
 | [`asyncapi.yaml`](asyncapi.yaml) | AsyncAPI 3.0 Socket.IO events (implemented handlers) |
 | [`game-rules.md`](game-rules.md) | Draft gameplay rules, locations, and client/server authority |
-| [`resources.md`](resources.md) | Terrain resource catalog — permanent and occasional resources by hex biome |
+| [`units.md`](units.md) | Unit type catalog — vehicules and buildings seeded from server constants |
 | [`schemas/`](schemas/) | JSON Schema (Draft 2020-12) — request DTOs, shared types, and response shapes |
 
-**Source of truth:** implemented controllers and DTOs in [`infinity/src/modules/`](../infinity/src/modules/). When code and OpenAPI / AsyncAPI / JSON Schema diverge, update those contract files to match code unless the task is explicitly to change server behavior. Markdown drafts (`game-rules.md`, `resources.md`) follow the agent rule above.
+**Source of truth:** implemented controllers and DTOs in [`infinity/src/modules/`](../infinity/src/modules/). When code and OpenAPI / AsyncAPI / JSON Schema diverge, update those contract files to match code unless the task is explicitly to change server behavior. Markdown drafts (`game-rules.md`, `resources.md`, `units.md`) follow the agent rule above.
 
 - OpenAPI REST: [`auth-api.yaml`](auth-api.yaml), [`admin-api.yaml`](admin-api.yaml), [`game-api.yaml`](game-api.yaml) (shared pieces in [`openapi-shared.yaml`](openapi-shared.yaml))
 - AsyncAPI: [`asyncapi.yaml`](asyncapi.yaml)
 - JSON Schema: [`schemas/README.md`](schemas/README.md)
 - Game rules (draft): [`game-rules.md`](game-rules.md)
-- Terrain resources (draft): [`resources.md`](resources.md)
+- Unit catalog (draft): [`units.md`](units.md)
 

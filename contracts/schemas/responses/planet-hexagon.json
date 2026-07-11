@@ -17,10 +17,7 @@
         "properties": {
           "type": { "type": "string" },
           "abundance": { "type": "number" },
-          "rarity": {
-            "type": "string",
-            "enum": ["common", "rare", "epic", "legendary"]
-          }
+          "rarity": { "$ref": "../shared/resource-rarity.json" }
         },
         "required": ["type", "abundance", "rarity"],
         "additionalProperties": false
