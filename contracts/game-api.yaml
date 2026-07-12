@@ -426,12 +426,15 @@ paths:
     post:
       tags: [Players, Units]
       operationId: buildUnit
-      summary: Start building a unit at a chosen planet hex
+      summary: Start building a unit at a chosen planet hex building zone
       description: |
         Starts timed construction for the caller-owned builder unit on the specified planet.
         The builder must be `idle`, have a `building` capability that allows the target type,
         carry enough cargo for the target recipe, and the target hex biome must match the
         target unit type `environments`.
+
+        Placement uses a `buildingZoneId` (one of 15 zones per hex — 9 central, 6 side).
+        Only small-footprint target types are supported for now.
 
         Ingredients are deducted from builder cargo when the build starts. Canceling does not
         refund resources. On success the builder status becomes `building`. When complete the

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hex Building Squares</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 2rem;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0f1419;
+      color: #c8d0d8;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: #e8edf2;
+    }
+
+    .canvas-wrap {
+      background: #1a222c;
+      border: 1px solid #2a3544;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+
+    svg {
+      display: block;
+      width: min(90vw, 560px);
+      height: auto;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      font-size: 0.85rem;
+      color: #8a96a3;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .legend-swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 2px;
+    }
+
+    .legend-swatch.hex { background: none; border: 2px solid #5a7a9a; }
+    .legend-swatch.central { background: #3d6b8a; border: 1px solid #5a9ab8; }
+    .legend-swatch.side { background: #6b5a3d; border: 1px solid #b8a05a; }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+    }
+
+    .controls label {
+      color: #8a96a3;
+      white-space: nowrap;
+    }
+
+    .controls input[type="range"] {
+      width: min(50vw, 220px);
+      accent-color: #5a9ab8;
+    }
+
+    .controls input[type="number"] {
+      width: 5.5rem;
+      padding: 0.35rem 0.5rem;
+      border: 1px solid #2a3544;
+      border-radius: 4px;
+      background: #1a222c;
+      color: #e8edf2;
+      font: inherit;
+    }
+
+    .controls input[type="number"]:focus {
+      outline: none;
+      border-color: #5a9ab8;
+    }
+
+    .info {
+      font-size: 0.8rem;
+      color: #6a7680;
+      text-align: center;
+      max-width: 560px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <h1>Hex Building Squares</h1>
+
+  <div class="controls">
+    <label for="square-side">Square side</label>
+    <input type="range" id="square-side-range" min="0.05" max="0.35" step="0.001">
+    <input type="number" id="square-side" min="0.05" max="0.35" step="0.001">
+  </div>
+
+  <div class="canvas-wrap">
+    <svg id="hex-canvas" viewBox="-0.08 -0.08 1.16 1.16" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="0.1" height="0.1" patternUnits="userSpaceOnUse">
+          <path d="M 0.1 0 L 0 0 0 0.1" fill="none" stroke="#252e38" stroke-width="0.002"/>
+        </pattern>
+      </defs>
+      <rect x="-0.08" y="-0.08" width="1.16" height="1.16" fill="url(#grid)"/>
+      <g id="layers"></g>
+    </svg>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item">
+      <span class="legend-swatch hex"></span>
+      <span>Hex boundary</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch central"></span>
+      <span>Central 3×3 (9)</span>
+    </div>
+    <div class="legend-item">
+      <span class="legend-swatch side"></span>
+      <span>Side squares (6)</span>
+    </div>
+  </div>
+
+  <p class="info" id="info">
+    Normalized hex coordinates (0–1). Side squares sit on hex edge midpoints — half inside, half outside.
+  </p>
+
+  <script>
+    const HEX_VERTICES = [
+      [0.5, 0],
+      [1, 0.25],
+      [1, 0.75],
+      [0.5, 1],
+      [0, 0.75],
+      [0, 0.25],
+    ];
+
+    const HEX_SIDE = Math.sqrt(5) / 4;
+    const DEFAULT_SQUARE_SIDE = HEX_SIDE / 3;
+
+    const SIDE_SQUARES = [
+      ['upper-right', 0.75, 0.125, 26.565],
+      ['right',       1.0, 0.5,   90],
+      ['lower-right', 0.75, 0.875, -26.565],
+      ['lower-left',  0.25, 0.875, 26.565],
+      ['left',        0.0, 0.5,   90],
+      ['upper-left',  0.25, 0.125, -26.565],
+    ];
+
+    const NS = 'http://www.w3.org/2000/svg';
+
+    function el(tag, attrs = {}) {
+      const node = document.createElementNS(NS, tag);
+      for (const [key, value] of Object.entries(attrs)) {
+        node.setAttribute(key, value);
+      }
+      return node;
+    }
+
+    function centralSquares(side) {
+      const center = 0.5;
+      const offsets = [-1, 0, 1];
+      const squares = [];
+
+      for (const row of offsets) {
+        for (const col of offsets) {
+          squares.push([center + col * side, center + row * side, 0]);
+        }
+      }
+
+      return squares;
+    }
+
+    function square(cx, cy, side, rotationDeg, { fill, stroke, label, title }) {
+      const half = side / 2;
+      const g = el('g', {
+        transform: `translate(${cx}, ${cy}) rotate(${rotationDeg})`,
+      });
+
+      const rect = el('rect', {
+        x: -half,
+        y: -half,
+        width: side,
+        height: side,
+        fill,
+        stroke,
+        'stroke-width': 0.004,
+      });
+
+      if (title) {
+        const t = el('title');
+        t.textContent = title;
+        g.appendChild(t);
+      }
+
+      g.appendChild(rect);
+
+      if (label) {
+        const text = el('text', {
+          x: 0,
+          y: 0,
+          'text-anchor': 'middle',
+          'dominant-baseline': 'central',
+          fill: '#e8edf2',
+          'font-size': 0.04,
+          'pointer-events': 'none',
+        });
+        text.textContent = label;
+        g.appendChild(text);
+      }
+
+      return g;
+    }
+
+    function render(squareSide) {
+      const layers = document.getElementById('layers');
+      layers.replaceChildren();
+      const centralSquaresList = centralSquares(squareSide);
+
+      // Hex outline
+      const hexPath = HEX_VERTICES.map(([x, y], i) =>
+        `${i === 0 ? 'M' : 'L'} ${x} ${y}`
+      ).join(' ') + ' Z';
+
+      layers.appendChild(el('path', {
+        d: hexPath,
+        fill: 'rgba(90, 122, 154, 0.08)',
+        stroke: '#5a7a9a',
+        'stroke-width': 0.006,
+        'stroke-linejoin': 'round',
+      }));
+
+      // Center marker
+      layers.appendChild(el('circle', {
+        cx: 0.5,
+        cy: 0.5,
+        r: 0.008,
+        fill: '#5a7a9a',
+        opacity: 0.6,
+      }));
+
+      // Central squares
+      centralSquaresList.forEach(([x, y, rot], i) => {
+        layers.appendChild(square(x, y, squareSide, rot, {
+          fill: 'rgba(61, 107, 138, 0.55)',
+          stroke: '#5a9ab8',
+          label: String(i + 1),
+          title: `Central ${i + 1}: (${x.toFixed(3)}, ${y.toFixed(3)})`,
+        }));
+      });
+
+      // Side squares
+      SIDE_SQUARES.forEach(([name, x, y, rot]) => {
+        layers.appendChild(square(x, y, squareSide, rot, {
+          fill: 'rgba(107, 90, 61, 0.55)',
+          stroke: '#b8a05a',
+          title: `${name}: (${x}, ${y}), ${rot}°`,
+        }));
+      });
+
+      document.getElementById('info').textContent =
+        `Square side: ${squareSide.toFixed(4)} (proposal default: ${DEFAULT_SQUARE_SIDE.toFixed(4)}). ` +
+        'Side squares sit on hex edge midpoints — half inside, half outside.';
+    }
+
+    const squareSideRange = document.getElementById('square-side-range');
+    const squareSideInput = document.getElementById('square-side');
+
+    function setSquareSide(value) {
+      const clamped = Math.min(0.35, Math.max(0.05, value));
+      squareSideRange.value = clamped;
+      squareSideInput.value = clamped.toFixed(3);
+      render(clamped);
+    }
+
+    squareSideRange.addEventListener('input', () => {
+      setSquareSide(parseFloat(squareSideRange.value));
+    });
+
+    squareSideInput.addEventListener('input', () => {
+      const value = parseFloat(squareSideInput.value);
+      if (!Number.isNaN(value)) {
+        render(Math.min(0.35, Math.max(0.05, value)));
+      }
+    });
+
+    squareSideInput.addEventListener('change', () => {
+      const value = parseFloat(squareSideInput.value);
+      setSquareSide(Number.isNaN(value) ? DEFAULT_SQUARE_SIDE : value);
+    });
+
+    setSquareSide(DEFAULT_SQUARE_SIDE);
+  </script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 title: Hex grid
 author: Composer
 created: 2026-07-11
-updated: 2026-07-11
+updated: 2026-07-12
 status: draft
 tags:
   - places
@@ -49,7 +49,7 @@ World/screen positions follow this layout (`axialToScreen` — server and Terra 
 
 ## Neighbors and distance
 
-**Adjacency** follows the **rendered** toroidal layout: the six closest cell centers within adjacency threshold, counting toroidal shifts of the grid (`getNeighbors` in `planet-surface-generation.ts`). This matches what players see on the map.
+**Adjacency** follows the **rendered** toroidal layout: the six closest cell centers within adjacency threshold, counting toroidal shifts of the grid (`getNeighbors` in `planet-surface-generation.ts`). This matches what players see on the map. The six [side building zones](building-zones.md#side-zones) on each hex name those neighbor directions in local space.
 
 **Step distance** (movement, range) is the shortest path in that adjacency graph (`hexMoveStepDistance`).
 
@@ -57,6 +57,7 @@ World/screen positions follow this layout (`axialToScreen` — server and Terra 
 
 ## Related
 
-- [index.md](index.md) — hexagons subdomain
+- [hex.md](hex.md) — cell shape and in-hex local coordinates
+- [building-zones.md](building-zones.md) — per-hex build zones and neighbor-facing sides
 - [../planet.md](../planet.md) — planet identity and surface summary
 - [../../../contracts/game-rules.md](../../../contracts/game-rules.md) → Places → Planets → Surface topology

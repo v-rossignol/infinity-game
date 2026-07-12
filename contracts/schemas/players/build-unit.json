@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infinity/contracts/schemas/players/build-unit.json",
   "title": "BuildUnit",
-  "description": "Request body for POST /players/me/units/{unitId}/build. Starts construction of a target unit type at the chosen planet hex.",
+  "description": "Request body for POST /players/me/units/{unitId}/build. Starts construction of a target unit type at the chosen planet hex building zone.",
   "x-infinity-source": "infinity/src/modules/units/dto/build-unit.dto.ts#BuildUnitDto",
   "type": "object",
   "properties": {
@@ -26,17 +26,28 @@
       "additionalProperties": false,
       "description": "Axial coordinates where the new unit will be placed."
     },
-    "targetPosition": {
-      "type": "object",
-      "properties": {
-        "x": { "type": "number", "minimum": 0, "maximum": 1 },
-        "y": { "type": "number", "minimum": 0, "maximum": 1 }
-      },
-      "required": ["x", "y"],
-      "additionalProperties": false,
-      "description": "Optional normalized position within the target hex (defaults to center)."
+    "buildingZoneId": {
+      "type": "string",
+      "enum": [
+        "central-0-0",
+        "central-1-0",
+        "central-2-0",
+        "central-0-1",
+        "central-1-1",
+        "central-2-1",
+        "central-0-2",
+        "central-1-2",
+        "central-2-2",
+        "upper-right",
+        "right",
+        "lower-right",
+        "lower-left",
+        "left",
+        "upper-left"
+      ],
+      "description": "Building zone within the target hex where the unit will be placed. Small footprints only (one zone)."
     }
   },
-  "required": ["planetId", "targetTypeId", "targetHex"],
+  "required": ["planetId", "targetTypeId", "targetHex", "buildingZoneId"],
   "additionalProperties": false
 }

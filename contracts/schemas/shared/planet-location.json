@@ -2,13 +2,17 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infinity/contracts/schemas/shared/planet-location.json",
   "title": "PlanetLocation",
-  "description": "Planet identity with optional hex surface coordinates and in-hex position (units).",
+  "description": "Planet identity with optional hex surface coordinates, in-hex position, and building zone slot (building units).",
   "x-infinity-source": "infinity/src/shared/interfaces/player-location.interface.ts#PlanetLocation",
   "type": "object",
   "properties": {
     "id": { "type": "string", "format": "uuid" },
     "hex_coords": { "$ref": "hex-coords.json" },
-    "position": { "$ref": "vec2-local.json" }
+    "position": { "$ref": "vec2-local.json" },
+    "buildingZoneId": {
+      "type": "string",
+      "description": "Building zone slot for immobile building units (e.g. central-1-1, right)."
+    }
   },
   "required": ["id"],
   "additionalProperties": false

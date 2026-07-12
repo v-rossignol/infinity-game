@@ -2,8 +2,8 @@
 title: Hex
 author: Composer
 created: 2026-07-11
-updated: 2026-07-11
-status: draft
+updated: 2026-07-12
+status: approved
 tags:
   - places
   - planets
@@ -14,6 +14,7 @@ sources:
   - ../../../contracts/schemas/shared/vec2-local.json
   - ../../../contracts/schemas/players/build-unit.json
   - ../../../packages/shared-config/src/constants.ts
+  - ../../../packages/shared-config/src/building-zones.ts
   - ../../../packages/shared-utils/src/game/unit-build-placement.ts
   - ../../../infinity/src/shared/utils/planet-surface-travel.ts
 ---
@@ -47,27 +48,7 @@ The cell **center** is `(0.5, 0.5)` in local space. A point is inside the hex wh
 
 ## Subdivisions
 
-For **build placement**, each hex is overlaid with a square **6 × 6** grid in normalized local space (`PLANET_HEX_BUILD_GRID_DIVISIONS`). Each subdivision cell is `1/6` wide and `1/6` tall (`0`–`1` on both axes).
-
-| Concept | Description |
-| ------- | ----------- |
-| Grid anchor `(col, row)` | Top-left corner of a unit footprint on the 6 × 6 grid |
-| Footprint | Square block of `n × n` grid cells occupied by the built unit |
-| `targetPosition` | Normalized center of the footprint sent to the build API (`build-unit.json`) |
-
-**Footprint size** by unit size (`getBuildFootprintCells`):
-
-| Unit size | Footprint (`n × n` cells) |
-| --------- | ------------------------- |
-| `small` | `1 × 1` |
-| `medium` | `2 × 2` |
-| `large` | `3 × 3` |
-
-A click or drag inside the hex is snapped to the anchor whose footprint is centered on the pointer (`normalizedPointToBuildGridAnchor`). The anchor is clamped so the footprint stays inside the `6 × 6` bounds (e.g. a `3 × 3` footprint can anchor at `col`/`row` `0`–`3` only).
-
-**Validity:** all four corners of the footprint rectangle must lie inside the hex polygon (`isBuildFootprintInsideHex`). Placements that would stick out past the sloped edges are rejected.
-
-The grid uses **6** divisions so the largest footprint (`3 × 3`) still has at least one cell of margin on each side. Server and Terra View share the same helpers in `@infinity/shared-utils` (`unit-build-placement.ts`).
+Build placement uses the **15-zone** model in [building-zones.md](building-zones.md) — 9 central squares plus 6 side squares, all `HEX_SQUARE_SIZE` wide in normalized local space. Server and Terra View share placement helpers in `@infinity/shared-utils` (`unit-build-placement.ts`).
 
 ## Distance unit
 
@@ -79,6 +60,7 @@ A stored surface hex (`PlanetHexagon`) has grid `coordinates` `(q, r)`, a `biome
 
 ## Related
 
+- [building-zones.md](building-zones.md) — 15-zone build subdivision and placement rules
 - [hex-grid.md](hex-grid.md) — how hexes tile into a toroidal surface
 - [index.md](index.md) — hexagons subdomain
 - [../../../resources/](../../../resources/) — terrain resources by hex biome

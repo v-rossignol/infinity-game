@@ -12,6 +12,7 @@ Hold hex-level place knowledge. Documents will be added as this subdomain is pop
 | -------- | ----------- |
 | [hex-grid.md](hex-grid.md) | Toroidal surface geometry — coordinates, layout, neighbors, distance |
 | [hex.md](hex.md) | Single hex cell — pointy-top shape, local coordinates, subdivisions |
+| [building-zones.md](building-zones.md) | Implemented 15-zone build subdivision (3 × 3 center + 6 side squares) |
 
 ## Parent
 
