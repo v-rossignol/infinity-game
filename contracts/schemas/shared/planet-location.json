@@ -11,7 +11,7 @@
     "position": { "$ref": "vec2-local.json" },
     "buildingZoneId": {
       "type": "string",
-      "description": "Building zone slot for immobile building units (e.g. central-1-1, right)."
+      "description": "Authoritative building zone slot for immobile building units (e.g. central-1-1, right). Set when the building is spawned; pairs with normalized position at the zone center."
     }
   },
   "required": ["id"],

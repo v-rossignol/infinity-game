@@ -24,6 +24,9 @@ modified:
   - date: 2026-06-27
     author: Composer
     model: composer-2.5-fast
+  - date: 2026-07-14
+    author: Composer
+    model: composer-2.5-fast
 sources:
   - documentation/infinity.md
   - infinity/src/shared/constants/galaxy.constants.ts
@@ -42,6 +45,8 @@ sources:
   - contracts/asyncapi.yaml
   - contracts/schemas/shared/player-location.json
   - contracts/resources.md
+  - contracts/units.md
+  - infinity/src/modules/units/unit-building.service.ts
 ```
 
 Draft business rules for Infinity gameplay, locations, and client/server authority. Rules may be completed or changed.
@@ -60,7 +65,7 @@ Draft business rules for Infinity gameplay, locations, and client/server authori
 | Freshy | Owns no buildings | Presence limited to home planet until expansion |
 | Home planet | Planet where the player spawns | Remembered as a permanent identity separate from current presence |
 | First entry | Spawn on the largest rocky planet at a random surface hex | — |
-| Vehicules and buildings | — | God-game command layer |
+| Vehicules and buildings | Planet surface move, extract, build, cargo, park/unpark; building zone placement | Inter-place command layer; transformation orders |
 
 # Game Vision
 
@@ -140,11 +145,25 @@ Unit instances are stored at a **place level**: `cube`, `starSystem`, or `planet
 
 ## Buildings
 
-present at a given location, they can't move.
+Buildings are immobile. They occupy a **building zone** on a planet hex surface.
+
+### Building construction (Implemented)
+
+Planet-surface builds use `POST /infinity/players/me/units/{unitId}/build` with a target hex and `buildingZoneId`.
+
+**Zones** — 15 equal squares per hex (9 central, 6 side). Side zones straddle the hex edge and share a physical slot with the opposite side zone on the neighboring hex.
+
+**Occupancy** — one building (or one in-progress build) per zone. Side-zone checks include the paired hex and opposite side zone id.
+
+**Environments** — see [units.md](units.md) → Environments. Atomic biomes require every involved hex to match. Compound entries (`biomeA+biomeB`) require a side zone with exactly those two biomes on the two hexes.
+
+**Finished instance** — `location.planet` includes `hex_coords`, normalized `position` (zone center), and `buildingZoneId` for building unit types.
+
+Only **small** footprints (one zone) are supported today.
 
 ## Vehicules
 
-present at a given location, they can move.
+Vehicules are mobile within their place level (planet surface today).
 
 # Movements and Locations
 
@@ -177,11 +196,11 @@ Clients use `GET /infinity/players/me/can-enter/*` before linking to Galaxy View
 - Govern **current presence** and transitions by unit/building ownership (see **Players → Planned**).
 - **Freshy** restriction: presence limited to home planet until the player owns units or buildings elsewhere.
 
-## Building places (Planned)
+## Building places
 
-Buildings do not move. They have a fixed place in the galaxy.
+Buildings do not move. They occupy a fixed building zone at planet depth (see **Units → Building construction**).
 
-## Vehicule movement (Planned)
+## Vehicule movement (Planned — inter-place)
 
 Vehicule can move within the place they occupy (cube, stellar system, planet's hexagone).
 They may gain the capability to move between places (cube to stellar system, stellar system to planet, and so on).

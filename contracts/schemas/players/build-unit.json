@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infinity/contracts/schemas/players/build-unit.json",
   "title": "BuildUnit",
-  "description": "Request body for POST /players/me/units/{unitId}/build. Starts construction of a target unit type at the chosen planet hex building zone.",
+  "description": "Request body for POST /players/me/units/{unitId}/build. Starts construction of a target unit type at the chosen planet hex building zone. Side zones share a slot with the neighboring hex; environment and occupancy rules apply to both hexes when relevant.",
   "x-infinity-source": "infinity/src/modules/units/dto/build-unit.dto.ts#BuildUnitDto",
   "type": "object",
   "properties": {

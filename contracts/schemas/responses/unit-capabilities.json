@@ -52,6 +52,36 @@
       },
       "required": ["speed"],
       "additionalProperties": false
+    },
+    "garage": {
+      "type": "object",
+      "description": "Park vehicules by size slot count.",
+      "properties": {
+        "small": { "type": "integer", "minimum": 0 },
+        "medium": { "type": "integer", "minimum": 0 },
+        "large": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["small", "medium", "large"],
+      "additionalProperties": false
+    },
+    "transformation": {
+      "type": "object",
+      "description": "Transform inputs into transformed resource products on the planet surface.",
+      "properties": {
+        "speed": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Multiplier applied to transformation progress per tick."
+        },
+        "types": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Allowed transformed resource ids (e.g. iron-ingot, copper-ingot)."
+        }
+      },
+      "required": ["speed", "types"],
+      "additionalProperties": false
     }
   },
   "additionalProperties": false,

@@ -112,6 +112,10 @@ paths:
         `recipe`, matches the builder `building` capability targets, and optionally matches
         the target hex biome when `planetId`, `q`, and `r` are all provided.
 
+        Biome filter is partial for compound environments (`ocean+plain`, etc.): a type is
+        included when the queried biome matches an atomic entry or appears in any compound
+        pair. Full environment validation (both hexes, side-zone rules) runs on build order.
+
         Each entry includes `buildDurationMs` for this builder (`recipe.work / building.speed
         × PLANET_BASE_BUILD_MS`). Returns an empty array when the builder has no building
         capability.
@@ -430,16 +434,23 @@ paths:
       description: |
         Starts timed construction for the caller-owned builder unit on the specified planet.
         The builder must be `idle`, have a `building` capability that allows the target type,
-        carry enough cargo for the target recipe, and the target hex biome must match the
-        target unit type `environments`.
+        carry enough cargo for the target recipe, and pass environment and placement checks.
 
-        Placement uses a `buildingZoneId` (one of 15 zones per hex — 9 central, 6 side).
-        Only small-footprint target types are supported for now.
+        **Environments** — each catalog entry in the target type `environments` array is either
+        atomic (`forest`) or compound (`ocean+plain`). Atomic: every hex involved in the build
+        must match. Compound: side zones only; the target hex and neighbor across that side zone
+        must have exactly those two biomes (order-independent). Any matching entry accepts the build.
+
+        **Placement** — uses `buildingZoneId` (one of 15 zones per hex: 9 central, 6 side).
+        Only small-footprint target types are supported. The zone must be free: no existing
+        building and no in-progress build on the same slot. Side zones also check the paired
+        zone on the adjacent hex (shared physical slot). Finished buildings store
+        `location.planet.buildingZoneId` and a derived normalized `position`.
 
         Ingredients are deducted from builder cargo when the build starts. Canceling does not
         refund resources. On success the builder status becomes `building`. When complete the
-        server creates the new unit instance and emits `UNIT_UPDATE` for both builder and built
-        unit on the planet room.
+        server re-validates placement and environment, creates the new unit instance, and emits
+        `UNIT_UPDATE` for both builder and built unit on the planet room.
       security:
         - bearerAuth: []
         - cookieAuth: []
@@ -484,7 +495,10 @@ paths:
               schema:
                 $ref: schemas/responses/http-error.json
         '422':
-          description: Builder cannot build target, invalid biome, unknown recipe resource, or insufficient cargo
+          description: >
+            Builder cannot build target; environment mismatch (including neighbor hex on side
+            zones); invalid or occupied building zone; unknown recipe resource; or insufficient
+            cargo
           content:
             application/json:
               schema:

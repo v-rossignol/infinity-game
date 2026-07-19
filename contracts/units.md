@@ -1,12 +1,13 @@
 # Units
 
 ```yaml
-date: 2026-07-05
+date: 2026-07-14
 author: Roro LeSage
 model: Composer
 sources:
   - infinity/src/modules/units/constants/unit-catalog.ts
   - infinity/src/modules/units/unit-catalog.service.ts
+  - infinity/src/modules/units/unit-building.service.ts
   - infinity/src/modules/units/entities/unit-type.entity.ts
   - packages/shared-types/src/Unit.ts
   - contracts/schemas/responses/unit-type.json
@@ -14,6 +15,7 @@ sources:
   - contracts/schemas/responses/unit-recipe.json
   - contracts/game-rules.md
   - contracts/resources.md
+  - okf/places/planets/hexagons/building-zones.md
 ```
 
 ## Overview
@@ -28,6 +30,21 @@ Each unit type has a stable **`id`** (kebab-case) for contracts, constants, and 
 
 ---
 
+## Environments
+
+Each unit type lists allowed **`environments`** as strings. Two forms are supported:
+
+| Form | Example | Placement rule |
+| ---- | ------- | -------------- |
+| **Atomic** | `forest` | Every hex involved in the build must have that biome. On a **side zone**, both the target hex and the neighbor hex across that zone must match (each must be listed when multiple atomic entries exist, or the single atomic entry must match both). |
+| **Compound** | `ocean+plain` | **Side zones only.** The target hex and its neighbor across the chosen side zone must have exactly those two biomes (order-independent). Cannot be satisfied on a central zone. |
+
+A type may list several entries (atomic and/or compound). The server accepts the build when **any one** entry matches.
+
+`GET /players/me/units/{unitId}/buildable` with a single-hex biome filter returns types whose atomic list includes that biome **or** whose compound entries include that biome as one side of the pair. Full placement validation runs on `POST .../build`.
+
+---
+
 ## Status legend
 
 - **Implemented** — seeded in `UNIT_CATALOG` and enforced by Infinity Server today.
@@ -35,8 +52,9 @@ Each unit type has a stable **`id`** (kebab-case) for contracts, constants, and 
 
 | Topic | Implemented | Planned |
 | ----- | ----------- | ------- |
-| Catalog seed | `scout-x1`, `sawmill`, `quarry` | Additional vehicules and buildings |
-| Planet surface | Move, extract, build, cargo, park/unpark | — |
+| Catalog seed | `scout-x1`, `sawmill`, `quarry`, `forge`, `dock` | Additional vehicules and buildings |
+| Planet surface | Move, extract, build, cargo, park/unpark | Transformation orders |
+| Building placement | Zone occupancy, side-zone cross-hex checks, compound environments | Medium/large footprints |
 | Place levels | `planet` instances for seeded types | `cube`, `starSystem` vehicules |
 | Inter-place travel | — | Cube ↔ system ↔ planet movement |
 
@@ -56,6 +74,8 @@ Each unit type has a stable **`id`** (kebab-case) for contracts, constants, and 
 | -- | ---- | ---- | ------------ | ------ |
 | `sawmill` | Sawmill | `small` | `forest` | 25 wood, 100 stone; 100 work |
 | `quarry` | Quarry | `small` | `mountain` | 100 wood, 50 stone; 150 work |
+| `forge` | Forge | `small` | all land biomes | 150 wood, 250 stone; 200 work |
+| `dock` | Dock | `small` | `ocean+plain`, `ocean+desert`, `ocean+forest`, `ocean+ice` | 200 wood, 200 stone; 250 work |
 
 ---
 
@@ -135,6 +155,56 @@ Description: *small mountain structure that extracts stone.*
 
 ---
 
+### `forge` — Forge
+
+**Implemented** · `building` · `small`
+
+| Field | Value |
+| ----- | ----- |
+| Mobility | `false` |
+| Speed | `null` |
+| Environments | `plain`, `forest`, `mountain`, `desert`, `ice`, `volcanic` |
+| Rules | — |
+| Recipe | `wood` × 150, `stone` × 250; work `200` |
+
+**Capabilities**
+
+| Capability | Value |
+| ---------- | ----- |
+| `cargo` | size `1000` |
+| `garage` | `small` × 1, `medium` × 0, `large` × 0 |
+| `transformation` | speed `1`, types `["iron-ingot", "copper-ingot"]` |
+
+Description: *Small structure that transforms ore into iron and copper ingots.*
+
+---
+
+### `dock` — Dock
+
+**Implemented** · `building` · `small`
+
+| Field | Value |
+| ----- | ----- |
+| Mobility | `false` |
+| Speed | `null` |
+| Environments | `ocean+plain`, `ocean+desert`, `ocean+forest`, `ocean+ice` |
+| Rules | — |
+| Recipe | `wood` × 200, `stone` × 200; work `250` |
+
+**Capabilities**
+
+| Capability | Value |
+| ---------- | ----- |
+| `cargo` | size `1000` |
+| `extraction` | speed `1`, types `["food", "salt-water"]` |
+| `garage` | `small` × 2, `medium` × 0, `large` × 0 |
+
+Description: *Coastal dock built near the ocean.*
+
+Each environment entry requires a **side building zone** between an `ocean` hex and the paired land biome. See [game-rules.md](game-rules.md) → Building construction.
+
+---
+
 ## Capability keys
 
 Optional blocks on `UnitTypeDefinition.capabilities`. Omitted keys mean the type does not have that capability. Shape: [unit-capabilities.json](schemas/responses/unit-capabilities.json) and `packages/shared-types/src/Unit.ts`.
@@ -143,8 +213,9 @@ Optional blocks on `UnitTypeDefinition.capabilities`. Omitted keys mean the type
 | --- | ---------- | ----------- |
 | `cargo` | vehicules, buildings | Maximum total cargo quantity across all resource types. |
 | `extraction` | vehicules, buildings | Planet-surface harvesting. `types` entries match resource ids from [resources.md](resources.md); `"*"` allows any resource present in the hex biome. |
+| `transformation` | buildings | Transform inputs into transformed products. `types` lists transformed resource ids (e.g. `iron-ingot`, `copper-ingot`). Transformation orders are **planned**; capability is seeded on Forge. |
 | `building` | vehicules (today) | Construct other unit types on the planet surface. Targets split by category (`vehicules`, `buildings`) with allowed `sizes` and unit `ids` (or `"*"`). |
-| `garage` | buildings | Park vehicules by size slot count (`small`, `medium`, `large`). Present in seed data; JSON Schema for `garage` is not yet in [unit-capabilities.json](schemas/responses/unit-capabilities.json). |
+| `garage` | buildings | Park vehicules by size slot count (`small`, `medium`, `large`). |
 
 Recipe shape: [unit-recipe.json](schemas/responses/unit-recipe.json). Ingredients are consumed from the builder's cargo when a build order starts.
 
@@ -152,7 +223,8 @@ Recipe shape: [unit-recipe.json](schemas/responses/unit-recipe.json). Ingredient
 
 ## Related documents
 
-- [game-rules.md](game-rules.md) — gameplay rules, movement timing, player presence
+- [game-rules.md](game-rules.md) — gameplay rules, movement timing, building construction
 - [resources.md](resources.md) — terrain resource ids used in recipes and extraction
-- [Unit model](../documentation/units/units.md) — extended field reference (`UnitType`, `UnitInstance`)
-- [Unit instances](../documentation/units/unit-instances.md) — runtime instance storage and API shapes
+- [game-api.yaml](game-api.yaml) — REST build endpoints
+- [schemas/players/build-unit.json](schemas/players/build-unit.json) — build request shape
+- [schemas/shared/planet-location.json](schemas/shared/planet-location.json) — `buildingZoneId` on finished buildings

@@ -2,7 +2,7 @@
 title: Units
 author: Composer
 created: 2026-07-08
-updated: 2026-07-11
+updated: 2026-07-14
 status: draft
 tags:
   - units
@@ -33,7 +33,7 @@ Summarize the unit catalog from the contract draft and link to authoritative sou
 | Domain | Description |
 | ------ | ----------- |
 | [vehicules/](vehicules/) | Mobile unit types (Scout-X1) |
-| [buildings/](buildings/) | Immobile unit types (Sawmill, Quarry, Forge) |
+| [buildings/](buildings/) | Immobile unit types (Sawmill, Quarry, Forge, Dock) |
 
 ## Authoritative sources
 

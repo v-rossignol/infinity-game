@@ -17,7 +17,11 @@
     },
     "environments": {
       "type": "array",
-      "items": { "type": "string" }
+      "items": {
+        "type": "string",
+        "description": "Atomic biome id (e.g. forest) or compound side-zone pair (e.g. ocean+plain)."
+      },
+      "description": "Allowed build environments. Atomic entries require matching biomes on every hex involved; compound entries require a side zone between exactly those two biomes."
     },
     "rules": {
       "type": "array",

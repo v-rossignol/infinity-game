@@ -1,5 +1,9 @@
 # Log — resources
 
+## 2026-07-14
+
+- Renamed occasional resource ids `gold` → `gold-ore` and `silver` → `silver-ore` in `occasional-resources.md` (display names: Gold ore, Silver ore).
+
 ## 2026-07-11
 
 - Aligned occasional resource quantities in `packages/shared-config/src/terrain-resources.ts` and `contracts/resources.md` with `occasional-resources.md`.

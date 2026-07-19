@@ -70,8 +70,13 @@ NestJS validates request bodies with `ValidationPipe`. Query DTOs use the same d
 | `enter-planet.json` | `POST /infinity/players/me/location/enter-planet` body |
 | `leave-planet.json` | `POST /infinity/players/me/location/leave-planet` body |
 | `leave-star-system.json` | `POST /infinity/players/me/location/leave-system` body |
-| `shared/vec2-local.json` | `PATCH /infinity/players/me/location/system` body |
-| `shared/vec3-local.json` | `PATCH /infinity/players/me/location/cube` body |
+| `update-planet-hex.json` | `PATCH /infinity/players/me/location/planet` body |
+| `build-unit.json` | `POST /infinity/players/me/units/{unitId}/build` body |
+| `list-buildable-units-query.json` | `GET /infinity/players/me/units/{unitId}/buildable` query |
+| `stop-unit.json` | `POST /infinity/players/me/units/{unitId}/stop-build` (and other stop actions) body |
+| `move-unit.json` | `POST /infinity/players/me/units/{unitId}/move` body |
+| `extract-unit.json` | `POST /infinity/players/me/units/{unitId}/extract` body |
+| `park-unit.json` | `POST /infinity/players/me/units/{unitId}/park` body |
 
 ### Galaxy (`galaxy/`)
 

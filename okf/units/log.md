@@ -1,5 +1,9 @@
 # Log — units
 
+## 2026-07-14
+
+- Buildings subdomain: added Dock entry (`dock.md`); updated [buildings/index.md](buildings/index.md) and [index.md](index.md).
+
 ## 2026-07-11
 
 - Buildings subdomain: added Forge entry (`forge.md`); updated [buildings/index.md](buildings/index.md).

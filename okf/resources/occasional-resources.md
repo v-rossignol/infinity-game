@@ -4,7 +4,7 @@
 
 author: Composer
 created: 2026-07-08
-updated: 2026-07-09
+updated: 2026-07-14
 status: draft
 tags:
 
@@ -31,8 +31,8 @@ Each resource has a stable `id` (kebab-case) for contracts, constants, and persi
 | `rare-earths`          | Rare earths          | `plain`           | 5        |
 | `uranium`              | Uranium              | `plain`           | 2        |
 | `bauxite`              | Bauxite              | `forest`          | 7        |
-| `gold`                 | Gold                 | `mountain`        | 1        |
-| `silver`               | Silver               | `mountain`        | 2        |
+| `gold-ore`             | Gold ore             | `mountain`        | 1        |
+| `silver-ore`           | Silver ore           | `mountain`        | 2        |
 | `oil`                  | Oil                  | `desert`, `ocean` | 10       |
 | `nitre`                | Nitre                | `desert`          | 5        |
 | `lithium`              | Lithium              | `desert`          | 5        |
@@ -51,7 +51,7 @@ Each resource has a stable `id` (kebab-case) for contracts, constants, and persi
 | ---------- | ------------------------- |
 | `plain`    | Rare earths, Uranium      |
 | `forest`   | Bauxite                   |
-| `mountain` | Gold, Silver              |
+| `mountain` | Gold ore, Silver ore      |
 | `desert`   | Oil, Nitre, Lithium       |
 | `ocean`    | Polymetallic nodules, Oil |
 | `ice`      | Tritium, Methane ice      |
