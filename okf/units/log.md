@@ -1,8 +1,17 @@
 # Log — units
 
+## 2026-07-20
+
+- Buildings subdomain: marked Mine as implemented (`mine.md`); aligned with `UNIT_CATALOG` (`extraction`, not `transformation`).
+
+## 2026-07-19
+
+- Added `transformation` capability to `capabilities.md` (marked as planned).
+
 ## 2026-07-14
 
 - Buildings subdomain: added Dock entry (`dock.md`); updated [buildings/index.md](buildings/index.md) and [index.md](index.md).
+- Compound side-zone environments (`ocean+plain`, etc.).
 
 ## 2026-07-11
 

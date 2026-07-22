@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/transformable-resource.json",
+  "title": "TransformableResource",
+  "description": "Transformed resource a unit may produce, with estimated duration for the caller-owned unit.",
+  "x-infinity-source": "infinity/src/modules/units/unit-transformation.service.ts#TransformableResource",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "additionalProperties": { "type": "number", "minimum": 1 },
+      "description": "Cargo resource ids and quantities consumed when the order starts."
+    },
+    "quantity": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Output quantity added to cargo on completion."
+    },
+    "work": {
+      "type": "number",
+      "minimum": 1,
+      "description": "Arbitrary work units for duration calculation."
+    },
+    "rarity": { "$ref": "../shared/resource-rarity.json" },
+    "notes": { "type": "string" },
+    "transformationDurationMs": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Estimated duration for this unit (work / transformation.speed × PLANET_BASE_BUILD_MS)."
+    }
+  },
+  "required": ["id", "name", "inputs", "quantity", "work", "rarity", "transformationDurationMs"],
+  "additionalProperties": false
+}

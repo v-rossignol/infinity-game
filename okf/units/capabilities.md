@@ -11,6 +11,7 @@ tags:
   - cargo
   - building
   - garage
+  - transformation
 sources:
   - ../../contracts/units.md
 ---
@@ -29,6 +30,7 @@ Schema shape: [contracts/schemas/responses/unit-capabilities.json](../../contrac
 | `extraction` | vehicules, buildings | Planet-surface harvesting. `types` entries match resource ids from [contracts/resources.md](../../contracts/resources.md); `"*"` allows any resource present in the hex biome. |
 | `building` | vehicules (today) | Construct other unit types on the planet surface. Targets split by category (`vehicules`, `buildings`) with allowed `sizes` and unit `ids` (or `"*"`). |
 | `garage` | buildings | Park vehicules by size slot count (`small`, `medium`, `large`). Present in seed data; JSON Schema for `garage` is not yet in [unit-capabilities.json](../../contracts/schemas/responses/unit-capabilities.json). |
+| `transformation` | vehicules, buildings | Take resources from the cargo of a unit to add another one (see [transformed-resources.md](../resources/transformed-resources.md)). |
 
 ## Recipes
 

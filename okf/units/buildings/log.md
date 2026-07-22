@@ -1,8 +1,13 @@
 # Log — buildings
 
+## 2026-07-20
+
+- Marked `mine.md` as **Implemented**; aligned capability to `extraction` (matches `UNIT_CATALOG` seed).
+- Updated `index.md` summary and catalog entries for `mine`.
+
 ## 2026-07-14
 
-- Added `dock.md` from `UNIT_CATALOG` (`infinity/src/modules/units/constants/unit-catalog.ts`) — compound side-zone environments (`ocean+plain`, etc.).
+- Updated `mine.md` capability from `extraction` to `transformation`.
 - Updated `index.md` summary and catalog entries.
 
 ## 2026-07-11

@@ -2,14 +2,14 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://infinity/contracts/schemas/socket/unit-update.json",
   "title": "UnitUpdate",
-  "description": "UNIT_UPDATE room broadcast payload. Emitted to the planet room when a unit arrives, stops moving, or extraction cargo/status changes.",
+  "description": "UNIT_UPDATE room broadcast payload. Emitted to the planet room when a unit arrives, stops moving, or unit cargo/status changes (extraction, transformation, building, cargo transfer, parking).",
   "x-infinity-source": "infinity/src/modules/socket/socket.gateway.ts#handleUnitMovementArrived",
   "type": "object",
   "properties": {
     "unitId": { "type": "string", "format": "uuid" },
     "status": {
       "type": "string",
-      "enum": ["idle", "moving", "inactive", "active", "destroyed", "extracting"]
+      "enum": ["idle", "moving", "inactive", "active", "destroyed", "extracting", "building", "transforming"]
     },
     "location": {
       "type": "object",

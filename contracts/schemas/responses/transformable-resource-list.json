@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/transformable-resource-list.json",
+  "title": "TransformableResourceList",
+  "description": "Response for GET /players/me/units/{unitId}/transformable.",
+  "x-infinity-source": "infinity/src/modules/units/unit-transformation.service.ts#listTransformableTypes",
+  "type": "array",
+  "items": { "$ref": "transformable-resource.json" }
+}

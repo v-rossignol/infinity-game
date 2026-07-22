@@ -213,7 +213,7 @@ Optional blocks on `UnitTypeDefinition.capabilities`. Omitted keys mean the type
 | --- | ---------- | ----------- |
 | `cargo` | vehicules, buildings | Maximum total cargo quantity across all resource types. |
 | `extraction` | vehicules, buildings | Planet-surface harvesting. `types` entries match resource ids from [resources.md](resources.md); `"*"` allows any resource present in the hex biome. |
-| `transformation` | buildings | Transform inputs into transformed products. `types` lists transformed resource ids (e.g. `iron-ingot`, `copper-ingot`). Transformation orders are **planned**; capability is seeded on Forge. |
+| `transformation` | buildings | Transform inputs into transformed products. `types` lists transformed resource ids (e.g. `iron-ingot`, `copper-ingot`). Transformation orders are implemented via REST (`/transform`, `/stop-transformation`). |
 | `building` | vehicules (today) | Construct other unit types on the planet surface. Targets split by category (`vehicules`, `buildings`) with allowed `sizes` and unit `ids` (or `"*"`). |
 | `garage` | buildings | Park vehicules by size slot count (`small`, `medium`, `large`). |
 

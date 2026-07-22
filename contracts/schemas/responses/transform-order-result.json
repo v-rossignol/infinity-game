@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/responses/transform-order-result.json",
+  "title": "TransformOrderResult",
+  "description": "Acknowledgement returned by POST /players/me/units/{unitId}/transform. The unit status is now transforming.",
+  "x-infinity-source": "infinity/src/modules/units/unit-transformation.service.ts#TransformOrderResult",
+  "type": "object",
+  "properties": {
+    "unitId": { "type": "string", "format": "uuid" },
+    "status": { "type": "string", "const": "transforming" },
+    "resourceType": { "type": "string" },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" }
+  },
+  "required": ["unitId", "status", "resourceType", "startedAt", "completedAt"],
+  "additionalProperties": false
+}

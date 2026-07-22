@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://infinity/contracts/schemas/players/transform-unit.json",
+  "title": "TransformUnit",
+  "description": "Request body for POST /players/me/units/{unitId}/transform. Starts transformation of a transformed resource product using cargo inputs.",
+  "x-infinity-source": "infinity/src/modules/units/dto/transform-unit.dto.ts#TransformUnitDto",
+  "type": "object",
+  "properties": {
+    "planetId": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Planet the unit currently occupies. Must match the unit stored planetId."
+    },
+    "resourceType": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Transformed resource id to produce (e.g. iron-ingot). Must be allowed by the unit type transformation capability."
+    }
+  },
+  "required": ["planetId", "resourceType"],
+  "additionalProperties": false
+}

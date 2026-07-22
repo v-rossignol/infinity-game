@@ -208,10 +208,11 @@ channels:
   unitUpdate:
     address: UNIT_UPDATE
     description: |
-      Server push when a unit finishes or stops movement, when extraction cargo/status
-      changes on a planet surface, or when cargo is dropped. Emitted after natural arrival,
-      stop-move, extraction tick, stop-extraction, or cargo drop. Delivered to all clients
-      in room `{planetId}`.
+      Server push when a unit finishes or stops movement, when extraction, transformation,
+      or building cargo/status changes on a planet surface, or when cargo is dropped or
+      transferred. Emitted after natural arrival, stop-move, extraction tick, stop-extraction,
+      transformation completed/stopped, building completed/stopped, cargo drop/transfer, or
+      parking events. Delivered to all clients in room `{planetId}`.
     messages:
       unitUpdate:
         $ref: '#/components/messages/UnitUpdate'

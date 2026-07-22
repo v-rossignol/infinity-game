@@ -426,6 +426,171 @@ paths:
               schema:
                 $ref: schemas/responses/http-error.json
 
+  /players/me/units/{unitId}/transformable:
+    get:
+      tags: [Players, Units]
+      operationId: listTransformableResources
+      summary: List transformed resources the unit can produce
+      description: |
+        Returns transformed resource recipes the caller-owned unit may produce: each entry
+        matches the unit `transformation.types` list and includes `transformationDurationMs`
+        for this unit (`recipe.work / transformation.speed × PLANET_BASE_BUILD_MS`).
+
+        Returns an empty array when the unit has no transformation capability.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transformable resources for this unit
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/transformable-resource-list.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit or catalog type not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/transform:
+    post:
+      tags: [Players, Units]
+      operationId: transformUnitResources
+      summary: Start transforming cargo inputs into a transformed product
+      description: |
+        Starts timed resource transformation for the caller-owned unit on the specified planet.
+        The unit must be `idle`, have transformation capability, carry enough cargo inputs,
+        and have free cargo space for the output quantity.
+
+        Inputs are deducted from cargo when the order starts (no refund on stop). On success
+        the unit status becomes `transforming`. When complete the server adds the transformed
+        product to cargo, sets status to `idle`, and emits a `UNIT_UPDATE` WebSocket event.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/transform-unit.json
+      responses:
+        '200':
+          description: Transform order accepted — unit is now transforming
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/transform-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit, catalog type, or transformed resource not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on planet, cannot transform, insufficient inputs, or cargo capacity exceeded
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
+  /players/me/units/{unitId}/stop-transformation:
+    post:
+      tags: [Players, Units]
+      operationId: stopUnitTransformation
+      summary: Stop a unit that is currently transforming
+      description: |
+        Halts in-progress transformation for the caller-owned unit on the specified planet.
+        The unit must be `transforming`. Consumed inputs are not refunded. Sets status to
+        `idle` and pushes a `UNIT_UPDATE` WebSocket event to the `planetId` room.
+      security:
+        - bearerAuth: []
+        - cookieAuth: []
+      parameters:
+        - name: unitId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: schemas/players/stop-unit.json
+      responses:
+        '200':
+          description: Stop transformation accepted — unit is now idle
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/stop-transformation-order-result.json
+        '401':
+          $ref: openapi-shared.yaml#/components/responses/Unauthorized
+        '403':
+          description: Unit not owned by caller
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '404':
+          description: Unit not found
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '409':
+          description: Unit is not transforming
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+        '422':
+          description: Unit not on the specified planet
+          content:
+            application/json:
+              schema:
+                $ref: schemas/responses/http-error.json
+
   /players/me/units/{unitId}/build:
     post:
       tags: [Players, Units]

@@ -40,7 +40,7 @@ Summary matrix of permanent and occasional resources by **terrain** (`HexBiome`)
 | ------- | ------------------- | -------------------- |
 | `plain` | Food, Fresh water | Rare earths, Uranium |
 | `forest` | Wood, Food | Bauxite |
-| `mountain` | Stone, Iron ore, Copper ore, Coal | Gold, Silver |
+| `mountain` | Stone, Iron ore, Copper ore, Coal | Gold ore, Silver ore |
 | `desert` | Silica, Alkaline minerals | Oil, Nitre, Lithium |
 | `ocean` | Food, Salt water | Polymetallic nodules, Oil |
 | `ice` | Ice, Cryogenic materials | Tritium, Methane ice |
@@ -83,8 +83,8 @@ Always present on every hex of matching terrain. One row per terrain–resource 
 | `rare-earths` | Rare earths | `plain` | 5 |
 | `uranium` | Uranium | `plain` | 2 |
 | `bauxite` | Bauxite | `forest` | 7 |
-| `gold` | Gold | `mountain` | 1 |
-| `silver` | Silver | `mountain` | 2 |
+| `gold-ore` | Gold ore | `mountain` | 1 |
+| `silver-ore` | Silver ore | `mountain` | 2 |
 | `oil` | Oil | `desert`, `ocean` | 10 |
 | `nitre` | Nitre | `desert` | 5 |
 | `lithium` | Lithium | `desert` | 5 |
